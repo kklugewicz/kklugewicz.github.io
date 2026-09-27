@@ -118,8 +118,13 @@ section { padding: 96px 0; }
   font-family: var(--serif); font-size: clamp(17px, 2.4vw, 22px); color: #d6dbe0;
   margin-top: 14px; text-shadow: 0 1px 6px rgba(0,0,0,.6);
 }
-.hero .roles span { color: var(--orange); padding: 0 8px; }
-.hero .tagline { margin: 22px auto 0; max-width: 620px; color: #a9b1b9; font-size: 16px; }
+.hero .roles .r { white-space: nowrap; }
+.hero .roles .sep { color: var(--orange); padding: 0 10px; }
+.hero .tagline { margin: 22px auto 0; max-width: 680px; color: #a9b1b9; font-size: 16px; }
+@media (max-width: 600px) {
+  .hero .roles .r { display: block; }
+  .hero .roles .sep { display: none; }
+}
 .hero hr { width: 60%; margin: 30px auto; border: 0; border-top: 1px solid rgba(255,255,255,.18); }
 
 .social { list-style: none; display: flex; justify-content: center; gap: 28px; }
