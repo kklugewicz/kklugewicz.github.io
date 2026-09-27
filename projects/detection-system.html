@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Motorized Detection System · Kyle Klugewicz</title>
+  <meta name="description" content="A rotating ultrasonic sensor platform that sweeps for objects and stops when something comes within 10 cm.">
+  <link rel="icon" href="../assets/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital@0;1&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body data-root="../" data-page="detection-system">
+  <div id="site-nav"></div>
+
+  <header class="page-hero" style="--hero-img:url(../assets/img/detect-pcb.jpg)">
+    <div class="row">
+      <p class="crumbs"><a href="../index.html">Home</a><span>/</span><a href="../index.html#projects">Projects</a></p>
+      <p class="eyebrow">Embedded Systems · Sophomore Design</p>
+      <h1>Motorized Detection System</h1>
+      <p class="subtitle">A rotating ultrasonic sensor platform that sweeps for objects and stops when something comes within 10 cm.</p>
+      <ul class="facts"><li><strong>When</strong>Spring 2025</li><li><strong>Group</strong>Stepper Motor Group</li><li><strong>Course</strong>EE 2240 · UT Arlington</li><li><strong>Tools</strong>Arduino · Multisim</li></ul>
+    </div>
+  </header>
+
+  <section>
+    <div class="row detail-body">
+      <article class="prose">
+        
+        <h2>Overview</h2>
+<p class="lead">A fully enclosed unit that works with no setup. It rotates an ultrasonic sensor continuously with a
+green status LED, then halts and switches to red when an object comes within 10 cm. A relay is enabled or disabled
+by a partner team's system over SPI.</p>
+
+<h2>What I did</h2>
+<ul>
+  <li>Designed the control logic for rotation, thresholding, LED status, and SPI-gated relay control.</li>
+  <li>Simulated the full circuit in Multisim, including a power budget for the Arduino, stepper, sensor, and relay.</li>
+  <li>Prototyped on a breadboard and captured PWM, trigger/echo, and relay waveforms on the oscilloscope.</li>
+  <li>Designed a PCB integrating a buck converter, relay, shunt voltage sensor, motor driver, and RGB indicator, with separated power and ground rails.</li>
+  <li>Verified every connection with a multimeter and ran a 5-minute burn-in on the final assembly.</li>
+</ul>
+      </article>
+      <aside class="aside"><div class="aside-block"><h4>Tools</h4><ul class="chips light-chips"><li>Arduino Uno R3</li><li>Stepper driver</li><li>Ultrasonic sensor</li><li>SPI</li><li>Multisim</li><li>PCB design</li></ul></div><div class="aside-block"><h4>Deliverables</h4><ul class="plain"><li>Schematic & PCB</li><li>Firmware</li><li>BOM & spending curve</li><li>Final presentation</li></ul></div></aside>
+    </div>
+  </section>
+
+  <section class="gray">
+    <div class="row">
+      <div class="intro" style="margin-bottom:36px"><p class="eyebrow">Gallery</p><h2>From the bench.</h2></div>
+      <div class="gallery"><figure><a href="../assets/img/detect-cad.jpg"><img src="../assets/img/detect-cad.jpg" alt="Enclosure and sensor-mount CAD" loading="lazy"></a><figcaption>Enclosure and sensor-mount CAD</figcaption></figure><figure><a href="../assets/img/detect-pcb.jpg"><img src="../assets/img/detect-pcb.jpg" alt="PCB layout" loading="lazy"></a><figcaption>PCB layout</figcaption></figure><figure><a href="../assets/img/detect-scope.jpg"><img src="../assets/img/detect-scope.jpg" alt="Scope capture of the LED control signal" loading="lazy" style="object-position:50% 45%"></a><figcaption>Scope capture of the LED control signal</figcaption></figure></div>
+    </div>
+  </section>
+  <div id="pager"></div>
+  <div id="site-footer"></div>
+  <script src="../site.js"></script>
+</body>
+</html>

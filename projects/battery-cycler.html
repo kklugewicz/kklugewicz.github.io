@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lithium Battery Cycler · Kyle Klugewicz</title>
+  <meta name="description" content="A 120 V AC bench instrument that charges and discharges lithium cells under user-defined profiles while tracking capacity and cell health.">
+  <link rel="icon" href="../assets/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital@0;1&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body data-root="../" data-page="battery-cycler">
+  <div id="site-nav"></div>
+
+  <header class="page-hero" style="--hero-img:url(../assets/img/cycler-board.jpg)">
+    <div class="row">
+      <p class="crumbs"><a href="../index.html">Home</a><span>/</span><a href="../index.html#projects">Projects</a></p>
+      <p class="eyebrow">Power Electronics · Senior Capstone</p>
+      <h1>Lithium Battery Cycler</h1>
+      <p class="subtitle">A 120 V AC bench instrument that charges and discharges lithium cells under user-defined profiles while tracking capacity and cell health.</p>
+      <ul class="facts"><li><strong>Role</strong>Central PCB & Integration</li><li><strong>When</strong>2026</li><li><strong>Team</strong>5 engineers</li><li><strong>Budget</strong>$878.44 total</li></ul>
+    </div>
+  </header>
+
+  <section>
+    <div class="row detail-body">
+      <article class="prose">
+        <ul class="metrics"><li><span class="num">5 A</span><span class="lbl">User-set constant current, 0.1 A accuracy</span></li><li><span class="num">2.0–4.1 V</span><span class="lbl">User-set voltage limits</span></li><li><span class="num">0.054 A</span><span class="lbl">Current-sense resolution</span></li><li><span class="num">4</span><span class="lbl">Bring-up defects diagnosed & fixed</span></li></ul>
+        <h2>Overview</h2>
+<p class="lead">The cycler runs off wall power and lets a user set constant-current and constant-voltage charge and
+discharge profiles from an on-device display. It reports C-rate, state of health, depth of discharge, and coulombic
+efficiency. We met every target specification.</p>
+
+<h2>Central PCB (my ownership)</h2>
+<ul>
+  <li>Selected and justified the core parts: an ESP32-DEVKITC-32UE, MPM3610 buck converters (21 V → 3.3 V / 5 V), and 16 A-rated relays.</li>
+  <li>Built the full GPIO map, integrated every subsystem into one schematic, and laid out the board in EasyEDA with a dedicated ground plane.</li>
+  <li>Diagnosed four bring-up defects: an unbonded battery ground, an I²C level-shifter bus conflict, relay traces undersized for 5 A, and a connector mismatch between boards. I fixed each on the bench.</li>
+  <li>Recovered a board after desoldering damage by moving its components to a replacement PCB.</li>
+</ul>
+
+<h2>Sensing</h2>
+<ul>
+  <li>Voltage sense uses an INA333 instrumentation amplifier. Current sense uses a Hall-effect sensor, characterized at 12.3 mV/A.</li>
+  <li>Both sensors were checked against a multimeter across their ranges. Instrumentation-amp error was 0.5% at 4.0 V.</li>
+  <li>Built a noise-rejection chain: a relay-open baseline, a trimmed mean of the middle 30% of samples, and an exponential moving average.</li>
+</ul>
+
+<h2>Charge &amp; discharge</h2>
+<ul>
+  <li>Charging uses an LTM8026 CC/CV module, simulated in LTspice and driven by an MCP4725 DAC.</li>
+  <li>Discharging uses a MOSFET active load (IRF540N) with an LT1006 integrator loop. A FLIR thermal study set a 4 A safe ceiling per MOSFET, and we derated the design to 3 A.</li>
+  <li>Firmware supports CC, CV, constant-resistance, and constant-power modes, a full-cycle mode, and an emergency stop.</li>
+</ul>
+<p>The design followed IEC 62133, UL 2054, UL 62368-1, and OSHA lab-safety practice.</p>
+      </article>
+      <aside class="aside"><div class="aside-block"><h4>Stack</h4><ul class="chips light-chips"><li>ESP32</li><li>EasyEDA</li><li>LTspice</li><li>INA333</li><li>LTM8026</li><li>IRF540N</li><li>I²C</li><li>FLIR</li></ul></div><div class="aside-block"><h4>Deliverables</h4><ul class="plain"><li>Schematics & 3 PCBs</li><li>Firmware & UI</li><li>BOM & spending curve</li><li>Gantt schedule</li><li>Final report & poster</li></ul></div></aside>
+    </div>
+  </section>
+
+  <section class="gray">
+    <div class="row">
+      <div class="intro" style="margin-bottom:36px"><p class="eyebrow">Gallery</p><h2>From the bench.</h2></div>
+      <div class="gallery"><figure><a href="../assets/img/cycler-kyle.jpg"><img src="../assets/img/cycler-kyle.jpg" alt="Final assembled cycler" loading="lazy" style="object-position:50% 35%"></a><figcaption>Final assembled cycler</figcaption></figure><figure><a href="../assets/img/cycler-board.jpg"><img src="../assets/img/cycler-board.jpg" alt="Charge, discharge, and central PCBs in the vented enclosure" loading="lazy"></a><figcaption>Charge, discharge, and central PCBs in the vented enclosure</figcaption></figure><figure><a href="../assets/img/cycler-sim.jpg"><img src="../assets/img/cycler-sim.jpg" alt="LTspice: stepped current control of the active load" loading="lazy"></a><figcaption>LTspice: stepped current control of the active load</figcaption></figure><figure><a href="../assets/img/cycler-team.jpg"><img src="../assets/img/cycler-team.jpg" alt="Demo day with the team" loading="lazy"></a><figcaption>Demo day with the team</figcaption></figure></div>
+    </div>
+  </section>
+  <div id="pager"></div>
+  <div id="site-footer"></div>
+  <script src="../site.js"></script>
+</body>
+</html>

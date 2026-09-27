@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manipulator Dynamics & Sliding-Mode Control · Kyle Klugewicz</title>
+  <meta name="description" content="Deriving robot-arm dynamics and comparing controllers on the same plant, ending with a robust sliding-mode design.">
+  <link rel="icon" href="../assets/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital@0;1&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body data-root="../" data-page="robotics-control">
+  <div id="site-nav"></div>
+
+  <header class="page-hero" style="--hero-img:url(../assets/img/robotics.svg)">
+    <div class="row">
+      <p class="crumbs"><a href="../index.html">Home</a><span>/</span><a href="../index.html#projects">Projects</a></p>
+      <p class="eyebrow">Graduate Robotics · Nonlinear Control</p>
+      <h1>Manipulator Dynamics & Sliding-Mode Control</h1>
+      <p class="subtitle">Deriving robot-arm dynamics and comparing controllers on the same plant, ending with a robust sliding-mode design.</p>
+      <ul class="facts"><li><strong>When</strong>Spring 2026</li><li><strong>Team</strong>3 engineers</li><li><strong>Course</strong>EE 5325 Robotics (graduate)</li><li><strong>Tools</strong>MATLAB · Simulink</li></ul>
+    </div>
+  </header>
+
+  <section>
+    <div class="row detail-body">
+      <article class="prose">
+        
+        <h2>Overview</h2>
+<p class="lead">Across a sequence of problem sets we derived and simulated manipulator dynamics, then tested
+different control strategies against the same robot model to see where each one breaks.</p>
+
+<h2>What we did</h2>
+<ul>
+  <li>Derived the manipulator equations of motion and simulated them in MATLAB/Simulink.</li>
+  <li>Compared several controller formulations on the same plant. One demanded an unrealistic <strong>2000 N·m</strong> of torque, which motivated a more robust approach.</li>
+  <li>Implemented sliding-mode control: derived the sliding surface, virtual reference, and torque law, so tracking error converges despite model uncertainty.</li>
+  <li>Compared results across strategies and presented the findings.</li>
+</ul>
+<div class="callout">The header figure is illustrative. It shows trajectories from many initial states sliding onto a surface (orange) and converging to zero error, which is the core idea behind sliding-mode control.</div>
+      </article>
+      <aside class="aside"><div class="aside-block"><h4>Tools</h4><ul class="chips light-chips"><li>MATLAB</li><li>Simulink</li><li>Nonlinear control</li><li>Lagrangian dynamics</li></ul></div><div class="aside-block"><h4>Team</h4><ul class="plain"><li>Eduardo Castellanos</li><li>Pablo Romero Rodriguez</li><li>Kyle Klugewicz</li></ul></div></aside>
+    </div>
+  </section>
+
+  <div id="pager"></div>
+  <div id="site-footer"></div>
+  <script src="../site.js"></script>
+</body>
+</html>
