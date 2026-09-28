@@ -168,7 +168,7 @@ function heroSignals() {
 
 // Click a gallery image to view it large
 function lightbox() {
-  const links = document.querySelectorAll(".gallery a");
+  const links = document.querySelectorAll(".gallery a, a.zoom");
   if (!links.length) return;
   const box = document.createElement("div");
   box.className = "lightbox";

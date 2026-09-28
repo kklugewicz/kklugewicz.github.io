@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Portable EEG Headband · Kyle Klugewicz</title>
-  <meta name="description" content="An electrode-to-laptop EEG acquisition system built around the TI ADS1299 biopotential front end and an ESP32.">
+  <meta name="description" content="A battery-powered EEG acquisition system built around the TI ADS1299 and an ESP32: design decisions, verification results, and a root-cause analysis of low-frequency noise.">
   <link rel="icon" href="../assets/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,59 +14,203 @@
 <body data-root="../" data-page="eeg-headband">
   <div id="site-nav"></div>
 
-  <header class="page-hero" style="--hero-img:url(../assets/img/eeg-psd.jpg)">
+  <header class="page-hero" style="--hero-img:url(../assets/img/eeg-pcb-assembled.jpg)">
     <div class="row">
       <p class="crumbs"><a href="../index.html">Home</a><span>/</span><a href="../index.html#projects">Projects</a></p>
       <p class="eyebrow">BCI Hardware · Junior Design</p>
       <h1>Portable EEG Headband</h1>
-      <p class="subtitle">An electrode-to-laptop EEG acquisition system built around the TI ADS1299 biopotential front end and an ESP32.</p>
-      <ul class="facts"><li><strong>Role</strong>Team Lead & Firmware</li><li><strong>When</strong>Fall 2025</li><li><strong>Team</strong>4 engineers</li><li><strong>Course</strong>EE 3240 · UT Arlington</li></ul>
+      <p class="subtitle">A battery-powered, eight-channel-capable EEG system that carries brain signals from a headband through a TI ADS1299 and an ESP32 to real-time analysis in MATLAB.</p>
+      <ul class="facts">
+        <li><strong>Role</strong>Team Lead · Firmware</li>
+        <li><strong>When</strong>Aug – Dec 2025</li>
+        <li><strong>Team</strong>4 engineers</li>
+        <li><strong>Budget</strong>$217.97 of $300</li>
+      </ul>
     </div>
   </header>
 
   <section>
     <div class="row detail-body">
       <article class="prose">
-        
+        <ul class="metrics">
+          <li><span class="num">4 / 5</span><span class="lbl">Design objectives fully met</span></li>
+          <li><span class="num">~10×</span><span class="lbl">Drop in low-frequency noise peak with bias drive on</span></li>
+          <li><span class="num">66 Hz</span><span class="lbl">Anti-alias cutoff on every input</span></li>
+          <li><span class="num">5.00 / 3.31 V</span><span class="lbl">Measured analog / digital supply rails</span></li>
+          <li><span class="num">40+</span><span class="lbl">ADS1299 registers configured in firmware</span></li>
+          <li><span class="num">27%</span><span class="lbl">Under budget: $82 left unspent</span></li>
+        </ul>
+
         <h2>Overview</h2>
-<p class="lead">Our goal was a low-cost EEG headband that could turn brain-wave activity into control signals for
-simple software. The system chains a custom electrode headband into a board built around the ADS1299, which
-amplifies and digitizes microvolt-level signals. An ESP32 then configures that chip and streams the data wirelessly
-to a laptop for filtering and visualization.</p>
+        <p class="lead">We set out to build a low-cost EEG headband that could turn brain activity into control signals
+        for simple games. The finished system takes signals from electrodes on the forehead and mastoid, digitizes them
+        on a custom ADS1299 board, streams them over Bluetooth from an ESP32, and analyzes them live in MATLAB.
+        Four of our five objectives were met. The fifth, a front end quiet enough to pull reliable control features
+        from live EEG, was not. The rest of this page shows how we tracked that problem down.</p>
 
-<h2>My role</h2>
-<ul>
-  <li><strong>Team lead.</strong> I coordinated four design areas, ran our meetings, owned the budget and schedule, and submitted every purchase order.</li>
-  <li><strong>Firmware.</strong> I wrote the ESP32 firmware that initializes and configures the ADS1299 over SPI, manages acquisition, and streams the digitized samples over Bluetooth.</li>
-  <li><strong>Neuroscience research.</strong> I made sure the design followed EEG fundamentals (alpha and beta bands, event-related potentials, electrode placement) and relevant biomedical standards.</li>
-</ul>
+        <h2>My role</h2>
+        <ul>
+          <li><strong>Team lead.</strong> I ran meetings across four subsystems (headband and enclosure, circuit and PCB, firmware, software), owned the schedule and Gantt chart, managed the $300 budget, and placed every purchase order.</li>
+          <li><strong>Firmware.</strong> I wrote the ESP32 firmware that brings up the ADS1299 over SPI, configures its registers, handles data-ready timing, and streams samples over Bluetooth to MATLAB.</li>
+          <li><strong>Neuroscience research.</strong> I made sure the design followed EEG fundamentals: which frequency bands carry which brain states, where electrodes go in the international 10–20 system, and what the relevant biomedical standards require.</li>
+        </ul>
 
-<h2>Signal chain</h2>
-<p>Electrodes → ADS1299 (24-bit, programmable gain up to 24×) → ESP32 over SPI → Bluetooth → MATLAB
-(0.5–35 Hz band-pass and Welch power spectral density).</p>
+        <h2>System architecture</h2>
+        <p>A 3.7 V Li-Po battery feeds two conversion paths. A boost converter and LDO produce a quiet 5 V rail for the
+        ADS1299's analog side, and a buck converter and LDO produce 3.3 V for its digital side and the ESP32. Electrode
+        signals enter the ADS1299, which amplifies and digitizes them at 24-bit resolution. The ESP32 reads each
+        sample over SPI and forwards it over Bluetooth.</p>
+        <figure class="fig">
+          <a class="zoom" href="../assets/img/eeg-block.png"><img src="../assets/img/eeg-block.png" alt="Block diagram: electrode headband to ADS1299 to ESP32 to computer over Bluetooth, with boost/buck converters and LDOs from a 3.7 V Li-Po" loading="lazy"></a>
+          <figcaption>Signal and power architecture. Blue is the biopotential input, green is SPI data, purple is Bluetooth, and red is power.</figcaption>
+        </figure>
 
-<h2>Validation</h2>
-<ul>
-  <li>Verified the converter with the ADS1299's internal test signals at ~1 Hz and ~2 Hz before the PCB arrived.</li>
-  <li>Injected 50 mVpp sine waves at 1.9, 25, and 40 Hz from a signal generator. Each showed a clean peak at the injected frequency in the PSD.</li>
-  <li>Compared bias-drive on and off, and ran dry-electrode and saline-gel contact tests.</li>
-</ul>
+        <h2>Key design decisions</h2>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>Decision</th><th>Alternatives weighed</th><th>Chosen · why</th></tr></thead>
+            <tbody>
+              <tr><td>Analog front end</td><td>Discrete INA128 / AD8237 amps + ADS1256 ADC; ADAS1000 (ECG-focused); ADS131E08 / ADS1278 (no built-in amplifiers)</td><td><strong>ADS1299</strong>: a low-noise programmable-gain amplifier on every channel, built-in bias drive, and gain and sample rate set in software. It replaces a per-channel amplifier and filter chain with one chip.</td></tr>
+              <tr><td>Controller</td><td>Raspberry Pi 4B</td><td><strong>ESP32-WROOM-32</strong>: hardware SPI plus Bluetooth. Streaming needs only a few MB of flash, and it cost about $30 less.</td></tr>
+              <tr><td>Supply mode</td><td>Bipolar ±2.5 V</td><td><strong>Unipolar 5 V analog / 3.3 V digital</strong>: fewer rails and a simpler layout, with the full EEG input range kept.</td></tr>
+              <tr><td>Regulators</td><td>AMS1117 / LM1117 (~1.1 V dropout, higher quiescent current)</td><td><strong>TC1262-3.3</strong> (200 mV dropout at 300 mA, 80 µA quiescent, 64 dB ripple rejection below 1 kHz) and <strong>ZLDO500</strong> (30 mV dropout at 100 mA) to clean up switching ripple.</td></tr>
+              <tr><td>Converters</td><td>MP1584 buck / MT3608 boost modules</td><td><strong>Adafruit 4920 buck / 4654 boost</strong>: documented ripple and built-in protection.</td></tr>
+              <tr><td>Electrodes</td><td>All wet Ag/AgCl</td><td><strong>Dry gold-plated</strong> at the forehead recording (FP1) and bias (FPz) sites, which are reusable and need no gel. <strong>Wet Ag/AgCl</strong> at the mastoid reference, because a reference needs low impedance to hold the baseline steady.</td></tr>
+              <tr><td>Power source</td><td>Wall adapter</td><td><strong>Battery only</strong>: no path from mains power to the wearer, so no isolation circuitry is needed.</td></tr>
+              <tr><td>Game link</td><td>Bluetooth</td><td><strong>TCP</strong> (MATLAB → Processing): Bluetooth was already in use for the headset link, and TCP is low-latency between programs on the same computer.</td></tr>
+            </tbody>
+          </table>
+        </div>
 
-<h2>Outcome</h2>
-<p>We finished the headset and a stable acquisition pipeline, from electrode to laptop. Filtering strong enough to
-pull reliable control features out of live EEG was the piece we didn't finish within the semester. That lesson
-about real-world noise led directly to my later work on causal decoding.</p>
+        <h2>Analog front end</h2>
+        <p>Each electrode passes through a first-order RC low-pass filter before reaching the ADS1299. It removes
+        high-frequency content that would otherwise alias into the sampled data, and the series resistor limits
+        current spikes into the chip:</p>
+        <p class="formula">f<sub>c</sub> = 1 / (2π · 51 kΩ · 47 nF) ≈ 66 Hz</p>
+        <p>That passes the full EEG range (delta through beta, 0.5–30 Hz) and matches the values on TI's own ADS1299
+        evaluation board. The board uses a <strong>referential montage</strong>: every channel is measured against one shared
+        reference electrode, which needs fewer electrodes than a separate pair per channel. A <strong>driven bias
+        electrode</strong>, wired to TI's recommended circuit, senses the voltage common to all inputs and feeds back its
+        inverse to cancel shared interference such as 60 Hz mains hum. All eight input channels are routed, even though
+        the headband uses three electrodes, so the board can grow to the chip's full capacity.</p>
+        <figure class="fig">
+          <a class="zoom" href="../assets/img/eeg-schematic.jpg"><img src="../assets/img/eeg-schematic.jpg" alt="Full schematic: power tree, decoupling, eight electrode input filters, ADS1299, and ESP32" loading="lazy"></a>
+          <figcaption>Full schematic: battery, boost/buck and LDO power tree, decoupling, eight 51 kΩ / 47 nF input filters, the bias network, the ADS1299 and the ESP32.</figcaption>
+        </figure>
+
+        <h2>PCB layout</h2>
+        <p>The two-layer board follows TI's reference layout. Electrode inputs run down the left edge, well away from
+        the ESP32's digital activity on the right. The power circuitry sits along the top, with the 5 V analog rail
+        entering the ADS1299 from above and the 3.3 V digital rail from below, so the two domains stay physically
+        separate. Decoupling capacitors sit right at the chip's supply pins, and the board follows standard
+        manufacturing rules (for example, no 90° trace corners).</p>
+        <figure class="fig">
+          <a class="zoom" href="../assets/img/eeg-pcb-assembled.jpg"><img src="../assets/img/eeg-pcb-assembled.jpg" alt="Assembled EEG PCB with ADS1299, ESP32 DevKit, boost and buck modules, and electrode jacks" loading="lazy"></a>
+          <figcaption>Assembled board: electrode jacks and input filters on the left, the ADS1299 in the center, the ESP32 on the right, and the power stage across the top.</figcaption>
+        </figure>
+
+        <h2>Real-time software</h2>
+        <p>MATLAB receives the Bluetooth stream and uses Butterworth filters to split the signal into its brain-wave
+        bands: delta (blinks), alpha (8–13 Hz, relaxed) and beta (13–30 Hz, focused). It computes a phase-locking value
+        for each band with a Hilbert transform, then labels the current brain state from the alpha-to-beta ratio. Those
+        values go over TCP to three games built in Processing: the Chrome dinosaur game and Flappy Bird respond to
+        alpha/beta shifts, and Frogger responds to blinks.</p>
+        <figure class="fig">
+          <a class="zoom" href="../assets/img/eeg-analyzer.jpg"><img src="../assets/img/eeg-analyzer.jpg" alt="MATLAB real-time analyzer showing raw EEG, alpha band, beta band, spectrum, and a 'Focused / Beta-dominant (A/B=0.60)' label" loading="lazy"></a>
+          <figcaption>Live analyzer: raw signal, the isolated alpha and beta bands, the frequency spectrum, and a brain-state label ("Focused / Beta-dominant", alpha/beta ratio 0.60).</figcaption>
+        </figure>
+
+        <h2>Verification results</h2>
+        <p>We validated each subsystem separately, from the SPI link up to a person wearing the headset, so a
+        failure at one level couldn't hide behind another.</p>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>Test</th><th>Method</th><th>Result</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td>SPI link</td><td>Read the chip's fixed ID registers, then write values and read them back</td><td>Every register returned its expected value</td><td><span class="pill pass">Pass</span></td></tr>
+              <tr><td>Digitization (internal source)</td><td>ADS1299 built-in square-wave test signal at 0.95 Hz and 1.95 Hz</td><td>Clean square waves, with the spectral peak at the test frequency</td><td><span class="pill pass">Pass</span></td></tr>
+              <tr><td>Digitization (external source)</td><td>Signal generator: square, sine and sawtooth waves at 50 mVpp (1.9, 25 and 40 Hz), cross-checked on an oscilloscope</td><td>Waveforms reproduced, with the peak at the injected frequency. Low-frequency noise also visible.</td><td><span class="pill pass">Pass</span></td></tr>
+              <tr><td>Supply rails</td><td>Meter on each regulator output</td><td>5.00 V analog, 3.31 V digital</td><td><span class="pill pass">Pass</span></td></tr>
+              <tr><td>Analog supply, from the chip's view</td><td>Routed the ADS1299's internal mid-supply voltage (MVDD) to an input channel</td><td>Stable ≈2.5 V, as expected</td><td><span class="pill pass">Pass</span></td></tr>
+              <tr><td>Bias drive</td><td>Electrodes in conductive gel, spectrum with bias off vs. on</td><td>Low-frequency peak ≈3,800 → ≈370 after 30 s (~10×), and flat at 60 s</td><td><span class="pill pass">Pass</span></td></tr>
+              <tr><td>Brain-state label (bench)</td><td>Signal generator tones inside the alpha and beta bands</td><td>Correct dominant band reported</td><td><span class="pill pass">Pass</span></td></tr>
+              <tr><td>Brain-state label (human)</td><td>Eyes closed and relaxed vs. eyes open and focused, 8–45 Hz band-pass</td><td>Score moved the right way (lower when relaxed, higher when focused) but wasn't reproducible enough to control a game</td><td><span class="pill partial">Partial</span></td></tr>
+              <tr><td>Final PCB bring-up</td><td>Reflow assembly, then continuity and power checks</td><td>Rails and connections verified, but the ADS1299 was dead, likely from heat or static during assembly</td><td><span class="pill fail">Fail</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="fig-row" style="--cols:2">
+          <figure class="fig"><a class="zoom" href="../assets/img/eeg-mvdd.jpg"><img src="../assets/img/eeg-mvdd.jpg" alt="MVDD mid-supply rail read through ADS1299 channel over Bluetooth" loading="lazy"></a><figcaption>The analog mid-supply, read back through the ADS1299's own input: a flat line, confirming a clean analog supply.</figcaption></figure>
+          <figure class="fig"><a class="zoom" href="../assets/img/eeg-siggen-40.jpg"><img src="../assets/img/eeg-siggen-40.jpg" alt="40 Hz injected sine: time series and Welch PSD with a peak at 40 Hz" loading="lazy"></a><figcaption>40 Hz, 50 mVpp injected sine wave: the spectrum shows a single peak at 40 Hz.</figcaption></figure>
+        </div>
+
+        <h2>Root cause: the low-frequency noise</h2>
+        <p>Signal-generator tests showed a slow drift under 3 Hz that the chip's internal test signal did not.
+        That points to something between the electrodes and the chip rather than the chip itself. We tested four
+        suspects one at a time:</p>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>Suspect</th><th>How we tested it</th><th>Verdict</th></tr></thead>
+            <tbody>
+              <tr><td>Power supply</td><td>Rail measurements, plus the mid-supply readback through the chip</td><td><span class="pill ruled-out">Ruled out</span></td></tr>
+              <tr><td>Software lag</td><td>Removed the live spectrum plot, streamlined the code, moved to a faster computer</td><td><span class="pill ruled-out">Ruled out</span></td></tr>
+              <tr><td>Bias circuit</td><td>Electrodes in gel, bias off vs. on (below)</td><td><span class="pill partial">Works, but not enough</span></td></tr>
+              <tr><td>Signal path</td><td>Found that breadboard jumper wires, the lab's bench power supply, and three electrodes sharing one 3.5 mm jack (where cable movement shows up as drift) were all coupling noise in</td><td><span class="pill fail">Most likely cause</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="fig-row" style="--cols:3; --ratio:2.2/1">
+          <figure class="fig"><a class="zoom" href="../assets/img/eeg-bias-off.jpg"><img src="../assets/img/eeg-bias-off.jpg" alt="Welch PSD, bias off: peak near 3,800 at 1 Hz" loading="lazy"></a><figcaption>Bias off: peak ≈3,800 near 1 Hz</figcaption></figure>
+          <figure class="fig"><a class="zoom" href="../assets/img/eeg-bias-on-30s.jpg"><img src="../assets/img/eeg-bias-on-30s.jpg" alt="Welch PSD, bias on after 30 seconds: peak about 370" loading="lazy"></a><figcaption>Bias on, 30 s: peak ≈370</figcaption></figure>
+          <figure class="fig"><a class="zoom" href="../assets/img/eeg-bias-on-60s.jpg"><img src="../assets/img/eeg-bias-on-60s.jpg" alt="Welch PSD, bias on after 60 seconds: flat" loading="lazy"></a><figcaption>Bias on, 60 s: flat on the same scale</figcaption></figure>
+        </div>
+        <p>The conclusion was that the circuit design was sound and the prototyping method was the problem. A
+        breadboard can't hold microvolt-level signals steady. That's why the custom PCB mattered so much.</p>
+
+        <h2>Other problems solved along the way</h2>
+        <ul>
+          <li><strong>Firmware lost at power-off.</strong> The Arduino IDE was loading the program into the ESP32's temporary memory instead of permanent flash. Switching the flash mode and enlarging the flash partition fixed it.</li>
+          <li><strong>Laggy live display.</strong> Drawing a live spectrum every frame stalled the display, so we kept only the raw signal and band plots and got updates back to real time.</li>
+          <li><strong>Headband comfort.</strong> Reaching the mastoid reference meant angling the band so it pressed on the ear, so we added a padding strip behind the ear.</li>
+        </ul>
+
+        <h2>Outcome &amp; what I'd do differently</h2>
+        <p>The system worked from headband to screen: the SPI link, digitization, power, bias drive and software were
+        all verified. The gap was a front end quiet enough to extract control signals reliably, and the diagnosis above
+        pins that on how we prototyped rather than on the design.</p>
+        <ul>
+          <li><strong>Make an in-house PCB early.</strong> We spent weeks tuning the bias circuit on a breadboard. The fabricated board was ordered on Nov 19, arrived Nov 26, and was assembled Dec 1, two days before the final report, which left no time to recover from a damaged chip.</li>
+          <li><strong>Spend the budget on eliminating suspects.</strong> We left $82 unspent while not buying alternative electrodes and connectors that could have confirmed or ruled out the 3.5 mm jack.</li>
+          <li><strong>Protect the most expensive part.</strong> The $78 ADS1299 was the costliest single part. It needed antistatic handling and a controlled reflow temperature profile.</li>
+        </ul>
       </article>
-      <aside class="aside"><div class="aside-block"><h4>Stack</h4><ul class="chips light-chips"><li>ESP32</li><li>ADS1299</li><li>SPI</li><li>Bluetooth</li><li>MATLAB</li><li>Multisim</li><li>JLCPCB</li></ul></div><div class="aside-block"><h4>Team</h4><ul class="plain"><li>Joseph Billiot, headband & packaging</li><li>Julio Germosen, circuit & PCB</li><li>Natasha Iannello, software</li><li>Kyle Klugewicz, lead & firmware</li></ul></div></aside>
+
+      <aside class="aside">
+        <div class="aside-block"><h4>Stack</h4><ul class="chips light-chips"><li>ADS1299</li><li>ESP32</li><li>SPI</li><li>Bluetooth</li><li>Arduino IDE</li><li>MATLAB</li><li>Butterworth · FFT</li><li>Hilbert / PLV</li><li>TCP</li><li>Processing</li><li>Fusion 360</li><li>JLCPCB</li></ul></div>
+        <div class="aside-block"><h4>Key parts</h4><ul class="plain"><li>TI ADS1299 (8-ch, 24-bit)</li><li>ESP32-DevKitC-32E</li><li>Boost: Adafruit 4654</li><li>Buck: Adafruit 4920</li><li>LDOs: ZLDO500 · TC1262-3.3</li><li>3.7 V 2000 mAh Li-Po</li><li>Gold dry + Ag/AgCl electrodes</li></ul></div>
+        <div class="aside-block"><h4>Montage</h4><ul class="plain"><li>FP1: recording (dry)</li><li>FPz: bias drive (dry)</li><li>Mastoid: reference (wet)</li></ul></div>
+        <div class="aside-block"><h4>Team</h4><ul class="plain"><li>Joseph Billiot, headband &amp; enclosure</li><li>Julio Germosen, circuit &amp; PCB</li><li>Natasha Iannello, software</li><li>Kyle Klugewicz, lead &amp; firmware</li></ul></div>
+      </aside>
     </div>
   </section>
 
   <section class="gray">
     <div class="row">
       <div class="intro" style="margin-bottom:36px"><p class="eyebrow">Gallery</p><h2>From the bench.</h2></div>
-      <div class="gallery"><figure><a href="../assets/img/eeg-kyle.jpg"><img src="../assets/img/eeg-kyle.jpg" alt="Forehead electrode placement during testing" loading="lazy" style="object-position:50% 30%"></a><figcaption>Forehead electrode placement during testing</figcaption></figure><figure><a href="../assets/img/eeg-psd.jpg"><img src="../assets/img/eeg-psd.jpg" alt="25 Hz injected tone: raw signal and Welch PSD" loading="lazy"></a><figcaption>25 Hz injected tone: raw signal and Welch PSD</figcaption></figure><figure><a href="../assets/img/eeg-pcb.jpg"><img src="../assets/img/eeg-pcb.jpg" alt="Two-layer acquisition PCB (fab preview)" loading="lazy"></a><figcaption>Two-layer acquisition PCB (fab preview)</figcaption></figure></div>
+      <div class="gallery">
+        <figure><a href="../assets/img/eeg-bench.jpg"><img src="../assets/img/eeg-bench.jpg" alt="Kyle wearing forehead electrodes beside the bench power supply, signal generator, and oscilloscope" loading="lazy"></a><figcaption>Test bench: supply at 5.0 V / 3.3 V, signal generator, and scope</figcaption></figure>
+        <figure><a href="../assets/img/eeg-kyle.jpg"><img src="../assets/img/eeg-kyle.jpg" alt="Forehead electrode placement close-up" loading="lazy" style="object-position:50% 30%"></a><figcaption>Forehead electrode placement during testing</figcaption></figure>
+        <figure><a href="../assets/img/eeg-headband.jpg"><img src="../assets/img/eeg-headband.jpg" alt="Side views of the Velcro electrode headband being worn" loading="lazy"></a><figcaption>Finished headband: adjustable Velcro band with snap-on electrodes</figcaption></figure>
+        <figure><a href="../assets/img/eeg-internal-095.jpg"><img src="../assets/img/eeg-internal-095.jpg" alt="ADS1299 internal test signal at 0.95 Hz" loading="lazy"></a><figcaption>Internal test signal, 0.95 Hz</figcaption></figure>
+        <figure><a href="../assets/img/eeg-internal-195.jpg"><img src="../assets/img/eeg-internal-195.jpg" alt="ADS1299 internal test signal at 1.95 Hz" loading="lazy"></a><figcaption>Internal test signal, 1.95 Hz</figcaption></figure>
+        <figure><a href="../assets/img/eeg-siggen-19.jpg"><img src="../assets/img/eeg-siggen-19.jpg" alt="Signal generator 1.9 Hz square wave with low-frequency noise" loading="lazy"></a><figcaption>External 1.9 Hz square wave, showing the low-frequency noise</figcaption></figure>
+        <figure><a href="../assets/img/eeg-psd.jpg"><img src="../assets/img/eeg-psd.jpg" alt="25 Hz injected sine with PSD peak at 25 Hz" loading="lazy"></a><figcaption>External 25 Hz sine wave: spectral peak at 25 Hz</figcaption></figure>
+        <figure><a href="../assets/img/eeg-saline.jpg"><img src="../assets/img/eeg-saline.jpg" alt="Electrodes resting in conductive gel for the bias test" loading="lazy"></a><figcaption>Gel test setup used to isolate the bias circuit</figcaption></figure>
+        <figure><a href="../assets/img/eeg-pcb.jpg"><img src="../assets/img/eeg-pcb.jpg" alt="PCB fabrication preview renders" loading="lazy"></a><figcaption>PCB fabrication preview before ordering</figcaption></figure>
+      </div>
     </div>
   </section>
+
   <div id="pager"></div>
   <div id="site-footer"></div>
   <script src="../site.js"></script>
