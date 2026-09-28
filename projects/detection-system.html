@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Motorized Detection System · Kyle Klugewicz</title>
-  <meta name="description" content="A rotating ultrasonic sensor platform that sweeps for objects and stops when something comes within 10 cm.">
+  <meta name="description" content="My first PCB: a rotating ultrasonic scanner that sweeps 180° and stops when an object gets close. Sophomore design project at UT Arlington.">
   <link rel="icon" href="../assets/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,44 +14,97 @@
 <body data-root="../" data-page="detection-system">
   <div id="site-nav"></div>
 
-  <header class="page-hero" style="--hero-img:url(../assets/img/detect-pcb.jpg)">
+  <header class="page-hero" style="--hero-img:url(../assets/img/detect-demo-poster.jpg); --hero-pos:50% 40%">
     <div class="row">
       <p class="crumbs"><a href="../index.html">Home</a><span>/</span><a href="../index.html#projects">Projects</a></p>
       <p class="eyebrow">Embedded Systems · Sophomore Design</p>
       <h1>Motorized Detection System</h1>
-      <p class="subtitle">A rotating ultrasonic sensor platform that sweeps for objects and stops when something comes within 10 cm.</p>
-      <ul class="facts"><li><strong>When</strong>Spring 2025</li><li><strong>Group</strong>Stepper Motor Group</li><li><strong>Course</strong>EE 2240 · UT Arlington</li><li><strong>Tools</strong>Arduino · Multisim</li></ul>
+      <p class="subtitle">My first PCB: a rotating ultrasonic scanner that sweeps 180° and stops when something gets too close.</p>
+      <ul class="facts">
+        <li><strong>Role</strong>PCB Design · Integration</li>
+        <li><strong>When</strong>Spring 2025</li>
+        <li><strong>Team</strong>5 engineers</li>
+        <li><strong>Course</strong>EE 2240 · UT Arlington</li>
+      </ul>
     </div>
   </header>
 
   <section>
     <div class="row detail-body">
       <article class="prose">
-        
-        <h2>Overview</h2>
-<p class="lead">A fully enclosed unit that works with no setup. It rotates an ultrasonic sensor continuously with a
-green status LED, then halts and switches to red when an object comes within 10 cm. A relay is enabled or disabled
-by a partner team's system over SPI.</p>
+        <figure class="video-fig" style="--video-max:480px">
+          <video controls preload="none" playsinline poster="../assets/img/detect-demo-poster.jpg">
+            <source src="../assets/video/detect-demo.mp4" type="video/mp4">
+            Your browser can't play this video. <a href="../assets/video/detect-demo.mp4">Download it here.</a>
+          </video>
+          <figcaption>The finished unit sweeping, then stopping when a hand comes close (42 s, no sound).</figcaption>
+        </figure>
 
-<h2>What I did</h2>
-<ul>
-  <li>Designed the control logic for rotation, thresholding, LED status, and SPI-gated relay control.</li>
-  <li>Simulated the full circuit in Multisim, including a power budget for the Arduino, stepper, sensor, and relay.</li>
-  <li>Prototyped on a breadboard and captured PWM, trigger/echo, and relay waveforms on the oscilloscope.</li>
-  <li>Designed a PCB integrating a buck converter, relay, shunt voltage sensor, motor driver, and RGB indicator, with separated power and ground rails.</li>
-  <li>Verified every connection with a multimeter and ran a 5-minute burn-in on the final assembly.</li>
-</ul>
+        <ul class="metrics">
+          <li><span class="num">1st</span><span class="lbl">PCB I designed, fabricated &amp; assembled</span></li>
+          <li><span class="num">24 → 5 V</span><span class="lbl">Buck-converted supply rail</span></li>
+          <li><span class="num">180°</span><span class="lbl">Continuous scanning sweep</span></li>
+          <li><span class="num">10</span><span class="lbl">Arduino I/O channels in use</span></li>
+        </ul>
+
+        <h2>What it does</h2>
+        <p class="lead">A motor sweeps an ultrasonic sensor back and forth across 180°. The sensor sorts anything
+        it sees into three zones (far, near and close), and a red/green LED shows the zone. When something enters
+        the close zone, the sweep stops. It holds position for a moment, then picks up where it left off.</p>
+
+        <h2>How it works</h2>
+        <ul>
+          <li><strong>Power.</strong> A 24 V, 1 A input is stepped down to a 5 V rail by an adjustable buck converter (rated up to 40 V, 3 A).</li>
+          <li><strong>Remote on/off.</strong> A relay switches power to the motor, sensor and LED. The Arduino and a current-sensing module stay powered so the unit can always listen for an "on" command and report how much power it's drawing.</li>
+          <li><strong>Sensing.</strong> The ultrasonic sensor's trigger and echo pulses give distance from the echo's round-trip time. I verified these pulses on an oscilloscope before building the board.</li>
+          <li><strong>Motion.</strong> PWM pulses position the motor: 2 ms drives it toward 180° and 1 ms back toward 0°.</li>
+        </ul>
+
+        <h2>The PCB</h2>
+        <p>This was my first board. I drew the schematic and laid out the PCB in Fusion 360, exported it to
+        Eagle for fabrication, then soldered and tested it myself.</p>
+        <ul>
+          <li><strong>Single-sided routing.</strong> Every trace had to fit on one copper layer, so I used 0 Ω resistors as jumpers wherever two traces needed to cross.</li>
+          <li><strong>Sized power traces.</strong> I calculated trace widths for the 24 V and 5 V rails from the current each one carries.</li>
+          <li><strong>Plug-in Arduino.</strong> The board mounts directly onto an Arduino Uno and carries the buck converter, relay connection, current sensor, and headers for the motor, sensor and LED.</li>
+          <li><strong>Checked before power-up.</strong> I tested every connection for continuity with a multimeter before applying power.</li>
+        </ul>
+        <figure class="fig">
+          <a class="zoom" href="../assets/img/detect-schematic-layout.jpg"><img src="../assets/img/detect-schematic-layout.jpg" alt="Schematic and single-sided PCB layout with Arduino shield footprint and buck converter" loading="lazy"></a>
+          <figcaption>Schematic (left) and single-sided layout (right). The 0 Ω resistors act as jumpers where traces cross.</figcaption>
+        </figure>
+        <div class="fig-row" style="--cols:2; --ratio:4/3">
+          <figure class="fig"><a class="zoom" href="../assets/img/detect-pcb-top.jpg"><img src="../assets/img/detect-pcb-top.jpg" alt="Top of the PCB with buck converter, current sensor, and headers" loading="lazy"></a><figcaption>Top: buck converter, current sensor and wiring headers</figcaption></figure>
+          <figure class="fig"><a class="zoom" href="../assets/img/detect-pcb-bottom.jpg"><img src="../assets/img/detect-pcb-bottom.jpg" alt="Copper side of the PCB with the Arduino Uno mounted" loading="lazy"></a><figcaption>Copper side, mounted on the Arduino Uno</figcaption></figure>
+        </div>
+
+        <h2>Problems we solved</h2>
+        <ul>
+          <li><strong>Buck converter collapsing under load.</strong> Our first converter dropped below 1 V as soon as anything was connected. We tested it with different resistor loads and with the motor to confirm the part was bad, then swapped in a replacement and tuned it to 5 V.</li>
+          <li><strong>Moving off USB power.</strong> The system stopped working when the motor and sensor were moved from the Arduino's 5 V pin to the external rail. It worked once the Arduino itself also ran from that rail, so the whole system shared one supply.</li>
+          <li><strong>Relay glitch.</strong> Closing the relay made the motor act as if it were at 180° when it wasn't. We traced this to the code running its position checks too quickly and fixed the timing.</li>
+        </ul>
       </article>
-      <aside class="aside"><div class="aside-block"><h4>Tools</h4><ul class="chips light-chips"><li>Arduino Uno R3</li><li>Stepper driver</li><li>Ultrasonic sensor</li><li>SPI</li><li>Multisim</li><li>PCB design</li></ul></div><div class="aside-block"><h4>Deliverables</h4><ul class="plain"><li>Schematic & PCB</li><li>Firmware</li><li>BOM & spending curve</li><li>Final presentation</li></ul></div></aside>
+
+      <aside class="aside">
+        <div class="aside-block"><h4>Tools</h4><ul class="chips light-chips"><li>Fusion 360</li><li>Eagle</li><li>Arduino Uno R3</li><li>Multisim</li><li>Oscilloscope</li><li>Multimeter</li><li>Soldering</li></ul></div>
+        <div class="aside-block"><h4>Hardware</h4><ul class="plain"><li>HC-SR04 ultrasonic sensor</li><li>PWM-driven motor</li><li>Adjustable buck converter (24 V → 5 V)</li><li>Relay module</li><li>Current-sense module (I²C)</li><li>Red/green status LED</li></ul></div>
+        <div class="aside-block"><h4>Team</h4><ul class="plain"><li>Alex Chavez</li><li>Cole Cobleigh</li><li>Kyle Klugewicz</li><li>Alen Pjetrovic</li><li>Nick Worley</li></ul></div>
+      </aside>
     </div>
   </section>
 
   <section class="gray">
     <div class="row">
       <div class="intro" style="margin-bottom:36px"><p class="eyebrow">Gallery</p><h2>From the bench.</h2></div>
-      <div class="gallery"><figure><a href="../assets/img/detect-cad.jpg"><img src="../assets/img/detect-cad.jpg" alt="Enclosure and sensor-mount CAD" loading="lazy"></a><figcaption>Enclosure and sensor-mount CAD</figcaption></figure><figure><a href="../assets/img/detect-pcb.jpg"><img src="../assets/img/detect-pcb.jpg" alt="PCB layout" loading="lazy"></a><figcaption>PCB layout</figcaption></figure><figure><a href="../assets/img/detect-scope.jpg"><img src="../assets/img/detect-scope.jpg" alt="Scope capture of the LED control signal" loading="lazy" style="object-position:50% 45%"></a><figcaption>Scope capture of the LED control signal</figcaption></figure></div>
+      <div class="gallery">
+        <figure><a href="../assets/img/detect-demo-poster.jpg"><img src="../assets/img/detect-demo-poster.jpg" alt="Finished detection system on the bench" loading="lazy"></a><figcaption>Finished unit: sensor mount on the motor, electronics in the enclosure</figcaption></figure>
+        <figure><a href="../assets/img/detect-cad.jpg"><img src="../assets/img/detect-cad.jpg" alt="CAD model of the enclosure and sensor mount" loading="lazy"></a><figcaption>Enclosure and sensor-mount CAD</figcaption></figure>
+        <figure><a href="../assets/img/detect-scope.jpg"><img src="../assets/img/detect-scope.jpg" alt="Oscilloscope capture of a control signal" loading="lazy" style="object-position:50% 45%"></a><figcaption>Scope capture of the LED control signal</figcaption></figure>
+      </div>
     </div>
   </section>
+
   <div id="pager"></div>
   <div id="site-footer"></div>
   <script src="../site.js"></script>

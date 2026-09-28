@@ -352,6 +352,13 @@ section { padding: 96px 0; }
   background: #f5f7f8; border: 1px solid #e3e7ea; border-radius: 4px; padding: 10px 14px; display: inline-block; margin: 2px 0 16px;
 }
 
+.video-fig { margin: 8px 0 32px; }
+.video-fig video {
+  display: block; width: 100%; max-width: var(--video-max, 560px); margin: 0 auto;
+  border-radius: 6px; background: var(--ink); box-shadow: 0 10px 30px rgba(0,0,0,.18);
+}
+.video-fig figcaption { text-align: center; font-size: 13.5px; color: #6b737b; margin-top: 10px; }
+
 @media (max-width: 760px) {
   .fig-row { grid-template-columns: 1fr; }
 }
