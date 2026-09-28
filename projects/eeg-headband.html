@@ -21,7 +21,7 @@
       <h1>Portable EEG Headband</h1>
       <p class="subtitle">A battery-powered, eight-channel-capable EEG system that carries brain signals from a headband through a TI ADS1299 and an ESP32 to real-time analysis in MATLAB.</p>
       <ul class="facts">
-        <li><strong>Role</strong>Team Lead · Firmware</li>
+        <li><strong>Role</strong>Team Lead · Firmware · PCB</li>
         <li><strong>When</strong>Aug – Dec 2025</li>
         <li><strong>Team</strong>4 engineers</li>
         <li><strong>Budget</strong>$217.97 of $300</li>
@@ -52,6 +52,7 @@
         <ul>
           <li><strong>Team lead.</strong> I ran meetings across four subsystems (headband and enclosure, circuit and PCB, firmware, software), owned the schedule and Gantt chart, managed the $300 budget, and placed every purchase order.</li>
           <li><strong>Firmware.</strong> I wrote the ESP32 firmware that brings up the ADS1299 over SPI, configures its registers, handles data-ready timing, and streams samples over Bluetooth to MATLAB.</li>
+          <li><strong>Front end &amp; PCB.</strong> I did much of the PCB build-out and helped make the front-end design decisions described below: chip selection, input filtering, the bias and reference setup, and separating the analog and digital sections of the layout.</li>
           <li><strong>Neuroscience research.</strong> I made sure the design followed EEG fundamentals: which frequency bands carry which brain states, where electrodes go in the international 10–20 system, and what the relevant biomedical standards require.</li>
         </ul>
 
@@ -187,7 +188,7 @@
         <div class="aside-block"><h4>Stack</h4><ul class="chips light-chips"><li>ADS1299</li><li>ESP32</li><li>SPI</li><li>Bluetooth</li><li>Arduino IDE</li><li>MATLAB</li><li>Butterworth · FFT</li><li>Hilbert / PLV</li><li>TCP</li><li>Processing</li><li>Fusion 360</li><li>JLCPCB</li></ul></div>
         <div class="aside-block"><h4>Key parts</h4><ul class="plain"><li>TI ADS1299 (8-ch, 24-bit)</li><li>ESP32-DevKitC-32E</li><li>Boost: Adafruit 4654</li><li>Buck: Adafruit 4920</li><li>LDOs: ZLDO500 · TC1262-3.3</li><li>3.7 V 2000 mAh Li-Po</li><li>Gold dry + Ag/AgCl electrodes</li></ul></div>
         <div class="aside-block"><h4>Montage</h4><ul class="plain"><li>FP1: recording (dry)</li><li>FPz: bias drive (dry)</li><li>Mastoid: reference (wet)</li></ul></div>
-        <div class="aside-block"><h4>Team</h4><ul class="plain"><li>Joseph Billiot, headband &amp; enclosure</li><li>Julio Germosen, circuit &amp; PCB</li><li>Natasha Iannello, software</li><li>Kyle Klugewicz, lead &amp; firmware</li></ul></div>
+        <div class="aside-block"><h4>Team</h4><ul class="plain"><li>Joseph Billiot, headband &amp; enclosure</li><li>Julio Germosen, circuit design &amp; PCB</li><li>Natasha Iannello, software</li><li>Kyle Klugewicz, lead, firmware &amp; PCB</li></ul></div>
       </aside>
     </div>
   </section>
@@ -198,7 +199,7 @@
       <div class="gallery">
         <figure><a href="../assets/img/eeg-bench.jpg"><img src="../assets/img/eeg-bench.jpg" alt="Kyle wearing forehead electrodes beside the bench power supply, signal generator, and oscilloscope" loading="lazy"></a><figcaption>Test bench: supply at 5.0 V / 3.3 V, signal generator, and scope</figcaption></figure>
         <figure><a href="../assets/img/eeg-kyle.jpg"><img src="../assets/img/eeg-kyle.jpg" alt="Forehead electrode placement close-up" loading="lazy" style="object-position:50% 30%"></a><figcaption>Forehead electrode placement during testing</figcaption></figure>
-        <figure><a href="../assets/img/eeg-headband.jpg"><img src="../assets/img/eeg-headband.jpg" alt="Side views of the Velcro electrode headband being worn" loading="lazy"></a><figcaption>Finished headband: adjustable Velcro band with snap-on electrodes</figcaption></figure>
+        <figure><a href="../assets/img/eeg-headband.jpg"><img src="../assets/img/eeg-headband.jpg" alt="Kyle wearing the Velcro electrode headband, side views" loading="lazy"></a><figcaption>Me wearing the finished headband: adjustable Velcro band with snap-on electrodes</figcaption></figure>
         <figure><a href="../assets/img/eeg-internal-095.jpg"><img src="../assets/img/eeg-internal-095.jpg" alt="ADS1299 internal test signal at 0.95 Hz" loading="lazy"></a><figcaption>Internal test signal, 0.95 Hz</figcaption></figure>
         <figure><a href="../assets/img/eeg-internal-195.jpg"><img src="../assets/img/eeg-internal-195.jpg" alt="ADS1299 internal test signal at 1.95 Hz" loading="lazy"></a><figcaption>Internal test signal, 1.95 Hz</figcaption></figure>
         <figure><a href="../assets/img/eeg-siggen-19.jpg"><img src="../assets/img/eeg-siggen-19.jpg" alt="Signal generator 1.9 Hz square wave with low-frequency noise" loading="lazy"></a><figcaption>External 1.9 Hz square wave, showing the low-frequency noise</figcaption></figure>
