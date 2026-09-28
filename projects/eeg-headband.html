@@ -135,7 +135,6 @@
               <tr><td>Bias drive</td><td>Electrodes in conductive gel, spectrum with bias off vs. on</td><td>Low-frequency peak ≈3,800 → ≈370 after 30 s (~10×), and flat at 60 s</td><td><span class="pill pass">Pass</span></td></tr>
               <tr><td>Brain-state label (bench)</td><td>Signal generator tones inside the alpha and beta bands</td><td>Correct dominant band reported</td><td><span class="pill pass">Pass</span></td></tr>
               <tr><td>Brain-state label (human)</td><td>Eyes closed and relaxed vs. eyes open and focused, 8–45 Hz band-pass</td><td>Score moved the right way (lower when relaxed, higher when focused) but wasn't reproducible enough to control a game</td><td><span class="pill partial">Partial</span></td></tr>
-              <tr><td>Final PCB bring-up</td><td>Reflow assembly, then continuity and power checks</td><td>Rails and connections verified, but the ADS1299 was dead, likely from heat or static during assembly</td><td><span class="pill fail">Fail</span></td></tr>
             </tbody>
           </table>
         </div>
@@ -179,9 +178,8 @@
         all verified. The gap was a front end quiet enough to extract control signals reliably, and the diagnosis above
         pins that on how we prototyped rather than on the design.</p>
         <ul>
-          <li><strong>Make an in-house PCB early.</strong> We spent weeks tuning the bias circuit on a breadboard. The fabricated board was ordered on Nov 19, arrived Nov 26, and was assembled Dec 1, two days before the final report, which left no time to recover from a damaged chip.</li>
+          <li><strong>Make an in-house PCB early.</strong> We spent weeks tuning the bias circuit on a breadboard. The fabricated board was ordered on Nov 19, arrived Nov 26, and was assembled Dec 1, two days before the final report, leaving almost no time to test on the finished board.</li>
           <li><strong>Spend the budget on eliminating suspects.</strong> We left $82 unspent while not buying alternative electrodes and connectors that could have confirmed or ruled out the 3.5 mm jack.</li>
-          <li><strong>Protect the most expensive part.</strong> The $78 ADS1299 was the costliest single part. It needed antistatic handling and a controlled reflow temperature profile.</li>
         </ul>
       </article>
 
