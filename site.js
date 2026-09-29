@@ -18,7 +18,7 @@ const SITE = {
     { slug: "detection-system",  title: "Motorized Detection System",   note: "Embedded · sophomore design" },
   ],
   experience: [
-    { slug: "utari",            title: "UTARI Rehabilitation Robotics", note: "Research Assistant · 2026" },
+    { slug: "utari",            title: "UTARI Hand Exoskeleton",        note: "Research Assistant · 2026" },
     { slug: "oncor",            title: "Oncor Electric Delivery",       note: "Asset Management Intern · 2026" },
     { slug: "power-engineers",  title: "POWER Engineers",               note: "Distribution Design Intern · 2025" },
     { slug: "misonix",          title: "Misonix (Bioventus)",           note: "R&D Engineering Intern · 2020–22" },

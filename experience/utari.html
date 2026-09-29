@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Rehabilitation Robotics · Kyle Klugewicz</title>
-  <meta name="description" content="Control software and electronics for a hand, wrist, and elbow exoskeleton used in stroke rehabilitation.">
+  <title>Soft Robotic Hand Exoskeleton · Kyle Klugewicz</title>
+  <meta name="description" content="Closed-loop control, ESP32 firmware, and a C# GUI for a pneumatic hand exoskeleton that automates Continuous Passive Motion and Mirror Therapy. Undergraduate research at UTARI.">
   <link rel="icon" href="../assets/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,31 +14,124 @@
 <body data-root="../" data-page="utari">
   <div id="site-nav"></div>
 
-  <header class="page-hero">
+  <header class="page-hero" style="--hero-img:url(../assets/img/utari-glove-open.jpg)">
     <div class="row">
       <p class="crumbs"><a href="../index.html">Home</a><span>/</span><a href="../index.html#experience">Experience</a></p>
       <p class="eyebrow">Research Assistant · UTARI</p>
-      <h1>Rehabilitation Robotics</h1>
-      <p class="subtitle">Control software and electronics for a hand, wrist, and elbow exoskeleton used in stroke rehabilitation.</p>
-      <ul class="facts"><li><strong>Organization</strong>UT Arlington Research Institute</li><li><strong>Location</strong>Fort Worth, TX</li><li><strong>When</strong>Jan – May 2026</li><li><strong>Role</strong>Research Assistant</li></ul>
+      <h1>Soft Robotic Hand Exoskeleton</h1>
+      <p class="subtitle">Closed-loop control, firmware and a desktop GUI that automate Continuous Passive Motion and Mirror Therapy in a pneumatic glove for neurorehabilitation.</p>
+      <ul class="facts">
+        <li><strong>Where</strong>UTARI · Biomedical Technologies Division</li>
+        <li><strong>When</strong>Jan – May 2026</li>
+        <li><strong>Mentor</strong>Dr. Inderjeet Singh</li>
+        <li><strong>Output</strong>Undergraduate research poster</li>
+      </ul>
     </div>
   </header>
 
   <section>
     <div class="row detail-body">
       <article class="prose">
-        <ul class="metrics"><li><span class="num">1°</span><span class="lbl">Finger actuation accuracy</span></li><li><span class="num">3</span><span class="lbl">Joints: hand, wrist, elbow</span></li></ul>
+        <ul class="metrics">
+          <li><span class="num">&lt;5°</span><span class="lbl">Steady-state angle error in CPM, with no overshoot</span></li>
+          <li><span class="num">&lt;10%</span><span class="lbl">Steady-state error when mirroring one hand onto the other</span></li>
+          <li><span class="num">&lt;50 ms</span><span class="lbl">GUI-to-firmware communication latency</span></li>
+          <li><span class="num">±6.1%</span><span class="lbl">Average flex-sensor error (±21.9% worst case), measured across 6 trials per finger</span></li>
+        </ul>
+
         <h2>Overview</h2>
-<p class="lead">At the UT Arlington Research Institute I worked on an upper-limb exoskeleton that helps stroke
-patients rebuild motor function through guided, repeatable therapy.</p>
-<h2>What I did</h2>
-<ul>
-  <li>Built the graphical user interface that clinicians use to drive the exoskeleton.</li>
-  <li>Developed the control system, reaching finger actuation within <strong>1°</strong> of the target.</li>
-  <li>Revised circuit schematics and backend software to support more therapy routines and better session logging for clinicians.</li>
-</ul>
+        <p class="lead">Conditions like cerebral palsy often cause severe loss of hand function, and recovery depends on
+        hours of repetitive therapy. Soft pneumatic exoskeletons are a safe, compliant way to deliver it. Our lab had
+        already built the glove and its analog front end. I built the digital side: ESP32 firmware to drive the
+        pumps and valves, a closed-loop controller to reach target finger angles, and a desktop app that lets a
+        clinician run therapy sessions and watch the data live.</p>
+
+        <h2>Research poster</h2>
+        <figure class="fig">
+          <a class="zoom" href="../assets/img/utari-poster.jpg"><img src="../assets/img/utari-poster.jpg" alt="Research poster: Closed-Loop Control of a Soft Robotic Hand Exoskeleton with Integrated Graphical User Interface for Neurorehabilitation" loading="lazy"></a>
+          <figcaption>"Closed-Loop Control of a Soft Robotic Hand Exoskeleton with Integrated Graphical User Interface for Neurorehabilitation," by Kyle Klugewicz and Dr. Inderjeet Singh. Click to enlarge, or <a href="../assets/img/utari-poster.jpg" target="_blank" rel="noopener">open full size</a>.</figcaption>
+        </figure>
+
+        <h2>How the system works</h2>
+        <p><strong>Pneumatics.</strong> Each finger has a soft actuator molded into the glove. An inflation pump and a
+        vacuum pump connect through solenoid valves to a proportional valve, which meters air into or out of each finger.
+        Pressure and vacuum sensors on every line report what the actuator is actually doing.</p>
+        <p><strong>Electronics.</strong> The ESP32 commands the hardware over two buses:</p>
+        <ul>
+          <li><strong>I²C:</strong> a 16-channel PWM driver (PCA9685, set to 1.6 kHz) feeds an op-amp stage that sets each proportional valve. An I²C multiplexer (TCA9548A) splits the bus into eight sub-buses for the angle sensors.</li>
+          <li><strong>SPI:</strong> a 16-output switch (NXP MC33996) opens and closes the solenoids, five on the inflation line and five on the vacuum line. An analog multiplexer (ADG731) steps through the pressure, vacuum and left/right-hand flex sensors so one converter can read them all.</li>
+        </ul>
+        <p><strong>Software.</strong> The C# desktop app and the C++ firmware talk over a serial link. The GUI sends
+        short alphanumeric commands that set the mode and its inputs, and the firmware streams sensor data back, each
+        value tagged with a letter so the GUI knows what it's receiving.</p>
+
+        <h2>Closed-loop control</h2>
+        <p>Reaching a target finger angle means deciding, many times a second, whether to inflate or deflate and by how
+        much. I wrote a <strong>proportional-integral (PI) controller</strong> that drives the proportional valves:</p>
+        <ul>
+          <li>The <strong>proportional</strong> term acts on the current error and does most of the work, switching between inflation and deflation depending on which side of the target the finger is on.</li>
+          <li>The <strong>integral</strong> term accumulates leftover error to remove the steady-state offset. It's capped at 500 so it can't wind up and over-drive the glove.</li>
+          <li>The controller waits through a <strong>50-tick settling window</strong> before declaring a move finished, so it doesn't stop on a momentary pass through the target.</li>
+        </ul>
+        <p>In Continuous Passive Motion, it held <strong>steady-state error under 5° with no overshoot</strong>.</p>
+        <div class="fig-row" style="--cols:2; --ratio:3/4">
+          <figure class="fig"><a class="zoom" href="../assets/img/utari-glove-open.jpg"><img src="../assets/img/utari-glove-open.jpg" alt="Pneumatic glove with fingers extended" loading="lazy" style="object-position:40% 50%"></a><figcaption>Glove at rest, fingers extended</figcaption></figure>
+          <figure class="fig"><a class="zoom" href="../assets/img/utari-glove-flexed.jpg"><img src="../assets/img/utari-glove-flexed.jpg" alt="Pneumatic glove with fingers flexed into a fist" loading="lazy"></a><figcaption>Actuators inflated, fingers flexed</figcaption></figure>
+        </div>
+
+        <h2>Sensor study</h2>
+        <p>The glove's resistive flex sensors sit in a voltage divider, and the firmware converts the measured
+        resistance into a finger angle. To build that mapping, I ran <strong>six trials per finger</strong> across a range of
+        pressures and curve-fit the results.</p>
+        <p>The sensors averaged <strong>±6.1% error</strong> but reached <strong>±21.9%</strong> at worst. That's fine for monitoring,
+        but too noisy to steer the controller. Based on that finding, I switched the control loop to estimate angle from
+        the <strong>pressure sensors</strong>, which made it noticeably more stable. Setting the flex sensors directly into
+        the glove mold is the planned fix.</p>
+
+        <h2>Mirror therapy</h2>
+        <p>In mirror therapy, a patient's unaffected hand leads and the exoskeleton moves the affected hand to match.
+        I built two modes:</p>
+        <ul>
+          <li><strong>Continuous mirroring:</strong> reads the leading hand's flex sensors and drives the other glove to the same angles, with under 10% steady-state error.</li>
+          <li><strong>Fist synchronization:</strong> mirrors a full clench and release.</li>
+        </ul>
+        <div class="fig-row" style="--cols:2; --ratio:3/4">
+          <figure class="fig"><a class="zoom" href="../assets/img/utari-mirror-straight.jpg"><img src="../assets/img/utari-mirror-straight.jpg" alt="Two gloves with straight hands during mirroring" loading="lazy" style="object-position:50% 70%"></a><figcaption>Straight hand mirrored onto the second glove</figcaption></figure>
+          <figure class="fig"><a class="zoom" href="../assets/img/utari-mirror-flexed.jpg"><img src="../assets/img/utari-mirror-flexed.jpg" alt="Two gloves with flexed hands during mirroring" loading="lazy" style="object-position:50% 70%"></a><figcaption>Flexed hand mirrored onto the second glove</figcaption></figure>
+        </div>
+
+        <h2>The control app</h2>
+        <p>The desktop app is the clinician's control center. A live table shows pressure, vacuum and angle for all five
+        fingers on both hands, and a side menu switches between modes:</p>
+        <ul>
+          <li><strong>CPM:</strong> set a target angle per finger or for the whole hand.</li>
+          <li><strong>Mirror:</strong> start either mirroring mode.</li>
+          <li><strong>Vibration:</strong> set frequency, cycle count, number of trials, and a minimum and maximum time between trials.</li>
+          <li><strong>Graph:</strong> plot finger angles over time as data streams in.</li>
+          <li><strong>Settings and test modes:</strong> switch which hand is actuated, toggle data output, calibrate the gloves, and run simple test routines for troubleshooting.</li>
+          <li><strong>STOP:</strong> a stop button that is always visible.</li>
+        </ul>
+        <figure class="fig">
+          <a class="zoom" href="../assets/img/utari-gui-graph.png"><img src="../assets/img/utari-gui-graph.png" alt="GUI with live angle-versus-time graph for all five fingers" loading="lazy"></a>
+          <figcaption>The app with its live angle-vs-time graph during a CPM run.</figcaption>
+        </figure>
+        <div class="fig-row" style="--cols:2">
+          <figure class="fig"><a class="zoom" href="../assets/img/utari-gui-cpm.png"><img src="../assets/img/utari-gui-cpm.png" alt="GUI in CPM mode with per-finger target angles" loading="lazy"></a><figcaption>CPM mode: per-finger target angles</figcaption></figure>
+          <figure class="fig"><a class="zoom" href="../assets/img/utari-gui-vibration.png"><img src="../assets/img/utari-gui-vibration.png" alt="GUI in vibration mode with frequency, cycles, and trial timing inputs" loading="lazy"></a><figcaption>Vibration mode: frequency, cycles and trial timing</figcaption></figure>
+        </div>
+
+        <h2>Next steps</h2>
+        <ul>
+          <li>Embed the flex sensors in the glove mold to cut sensing error, so mirroring can track more tightly.</li>
+          <li>Add more therapy modes on top of the existing command protocol.</li>
+        </ul>
       </article>
-      <aside class="aside"><div class="aside-block"><h4>Skills</h4><ul class="chips light-chips"><li>Control systems</li><li>GUI development</li><li>Schematic revision</li><li>Clinical logging</li></ul></div></aside>
+
+      <aside class="aside">
+        <div class="aside-block"><h4>Skills</h4><ul class="chips light-chips"><li>C#</li><li>C++</li><li>ESP32</li><li>PlatformIO</li><li>PI control</li><li>I²C</li><li>SPI</li><li>Serial protocols</li><li>Sensor calibration</li><li>Pneumatics</li></ul></div>
+        <div class="aside-block"><h4>Key hardware</h4><ul class="plain"><li>ESP32 microcontroller</li><li>PCA9685 16-ch PWM driver</li><li>TCA9548A I²C multiplexer</li><li>NXP MC33996 16-output switch</li><li>ADG731 analog multiplexer</li><li>Proportional &amp; solenoid valves</li><li>Pressure, vacuum &amp; flex sensors</li></ul></div>
+        <div class="aside-block"><h4>Therapy modes</h4><ul class="plain"><li>Continuous Passive Motion</li><li>Mirror (continuous &amp; fist)</li><li>Vibration</li><li>Test / calibration</li></ul></div>
+      </aside>
     </div>
   </section>
 
