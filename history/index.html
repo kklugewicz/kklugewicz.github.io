@@ -1,0 +1,606 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Interactive world history map: borders, wars and religions through time.">
+<link rel="icon" href="../assets/favicon.svg">
+<style>
+*, *::before, *::after { box-sizing: border-box; }
+:root { color-scheme: light dark; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+body { margin: 0; }
+[hidden] { display: none !important; }
+</style>
+<title>World Through Time</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=Alegreya+Sans:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: full-bleed map; title + mode tabs top-left, reading panel on the right (bottom sheet on phones), timeline docked at the bottom with era bands above the slider. */
+:root {
+  --ocean: #d5dde0;
+  --grat: #c3ccd0;
+  --land: #e9e6df;
+  --land-edge: #cfcabf;
+  --ink: #1e2a31;
+  --ink-soft: #55636b;
+  --paper: #f7f6f2;
+  --line: #d9d6cd;
+  --accent: #9b3d23;
+  --pol-s: 42%;
+  --pol-l: 70%;
+  --pol-muted: #dcd8ce;
+  --pol-edge: #fbfaf7;
+  --faith-op: .82;
+  --sel: #1e2a31;
+  --shadow: 0 6px 24px rgba(30,42,49,.14);
+  --era-l: 80%;
+  --era-s: 30%;
+  --f-display: "IM Fell English", "Iowan Old Style", Georgia, serif;
+  --f-body: "Alegreya Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --ocean: #0e171d; --grat: #18242c; --land: #222b31; --land-edge: #2f3a41;
+  --ink: #e6e3da; --ink-soft: #9aa6ac; --paper: #151d22; --line: #2c373e; --accent: #e08a68;
+  --pol-s: 30%; --pol-l: 36%; --pol-muted: #2b353b; --pol-edge: #0e171d; --faith-op: .62; --sel: #f3efe4;
+  --shadow: 0 6px 24px rgba(0,0,0,.45); --era-l: 30%; --era-s: 22%;
+  color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --ocean: #0e171d; --grat: #18242c; --land: #222b31; --land-edge: #2f3a41;
+  --ink: #e6e3da; --ink-soft: #9aa6ac; --paper: #151d22; --line: #2c373e; --accent: #e08a68;
+  --pol-s: 30%; --pol-l: 36%; --pol-muted: #2b353b; --pol-edge: #0e171d; --faith-op: .62; --sel: #f3efe4;
+  --shadow: 0 6px 24px rgba(0,0,0,.45); --era-l: 30%; --era-s: 22%;
+  color-scheme: dark; }
+
+html, body { height: 100%; }
+body { background: var(--ocean); color: var(--ink); font-family: var(--f-body); font-size: 15px; overflow: hidden; }
+.app { position: relative; height: 100%; display: grid; grid-template-rows: 1fr auto; }
+.stage { position: relative; min-height: 0; }
+#map { width: 100%; height: 100%; display: block; cursor: grab; touch-action: none; }
+#map:active { cursor: grabbing; }
+.sphere { fill: var(--ocean); }
+.grat { fill: none; stroke: var(--grat); stroke-width: .6; vector-effect: non-scaling-stroke; }
+.land { fill: var(--land); stroke: var(--land-edge); stroke-width: .6; vector-effect: non-scaling-stroke; }
+.pol { stroke: var(--pol-edge); stroke-width: .8; vector-effect: non-scaling-stroke; cursor: pointer; transition: fill .3s; }
+.pol:hover { fill-opacity: .8; }
+.pol.muted { fill: var(--pol-muted) !important; }
+.pol.faith { fill-opacity: var(--faith-op); }
+.pol.sel { stroke: var(--sel); stroke-width: 2.2; }
+.pols { transition: opacity .25s ease; }
+.pols.fading { opacity: .3; }
+.lbl { font-family: var(--f-display); fill: var(--ink); paint-order: stroke; stroke: color-mix(in srgb, var(--paper) 70%, transparent); stroke-linejoin: round; text-anchor: middle; dominant-baseline: middle; pointer-events: none; }
+.theater { cursor: pointer; }
+.theater path { fill-opacity: .16; stroke-dasharray: 5 4; vector-effect: non-scaling-stroke; stroke-width: 1.6; }
+.theater:hover path { fill-opacity: .28; }
+.theater text, .mark text { font-family: var(--f-display); fill: var(--ink); paint-order: stroke; stroke: var(--paper); stroke-width: 3px; stroke-linejoin: round; }
+.move { fill: none; stroke-linecap: round; stroke-linejoin: round; opacity: .92; }
+.move-lbl { font-family: var(--f-body); font-style: italic; paint-order: stroke; stroke: var(--paper); stroke-linejoin: round; }
+.mark .dot { stroke: var(--paper); stroke-width: 1.5; }
+.mark.past { opacity: .45; }
+
+.top { position: absolute; top: calc(12px + env(safe-area-inset-top, 0px)); left: 16px; display: flex; flex-direction: column; gap: 8px; align-items: flex-start; max-width: calc(100% - 32px); }
+.top h1 { margin: 0; font-family: var(--f-display); font-weight: 400; font-size: clamp(22px, 3vw, 30px); line-height: 1; }
+.tabs { display: flex; background: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: 3px; box-shadow: var(--shadow); }
+.tabs button { border: 0; box-shadow: none; background: transparent; padding: 6px 14px; border-radius: 6px; font-weight: 500; }
+.tabs button[aria-selected="true"] { background: var(--ink); color: var(--paper); }
+.row { display: flex; gap: 6px; flex-wrap: wrap; }
+button { font: inherit; color: var(--ink); background: var(--paper); border: 1px solid var(--line); border-radius: 6px; padding: 5px 10px; cursor: pointer; box-shadow: var(--shadow); }
+button:hover { border-color: var(--ink-soft); }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.panel { position: absolute; top: 12px; right: 16px; bottom: 12px; width: min(380px, 34vw); background: var(--paper); border: 1px solid var(--line); border-radius: 10px; box-shadow: var(--shadow); display: flex; flex-direction: column; min-height: 0; }
+.panel-head { padding: 14px 18px 12px; border-bottom: 1px solid var(--line); }
+.kicker { font-size: 11.5px; letter-spacing: .09em; text-transform: uppercase; color: var(--accent); font-weight: 700; margin: 0 0 4px; }
+.period { font-family: var(--f-display); font-size: 34px; line-height: 1.05; margin: 0; text-wrap: balance; }
+.meta { margin-top: 6px; font-family: var(--f-mono); font-size: 11.5px; color: var(--ink-soft); }
+.panel-body { overflow-y: auto; padding: 14px 18px 18px; min-height: 0; display: flex; flex-direction: column; gap: 16px; }
+.focus h2 { margin: 0; font-family: var(--f-display); font-weight: 400; font-size: 24px; line-height: 1.1; text-wrap: balance; display: flex; align-items: center; gap: 8px; }
+.swatch { width: 14px; height: 14px; border-radius: 3px; flex: none; border: 1px solid var(--line); display: inline-block; }
+.sub { color: var(--ink-soft); font-size: 13px; margin-top: 3px; }
+.hint { color: var(--ink-soft); font-size: 14px; margin: 0; }
+.syn { margin: 0; font-size: 16px; line-height: 1.5; }
+.sec h3 { margin: 0 0 6px; font-size: 11.5px; letter-spacing: .09em; text-transform: uppercase; color: var(--ink-soft); font-weight: 700; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.held { font-family: var(--f-mono); text-transform: none; letter-spacing: 0; font-weight: 500; font-size: 11px; color: var(--accent); border: 1px solid currentColor; border-radius: 999px; padding: 0 7px; }
+.sec ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.sec li { line-height: 1.4; font-size: 14px; }
+.from { margin: 8px 0 4px; font-size: 13px; color: var(--ink-soft); }
+.yr { font-family: var(--f-mono); font-size: 12px; color: var(--accent); }
+details { border-top: 1px solid var(--line); padding-top: 10px; }
+details summary { cursor: pointer; font-weight: 700; font-size: 12.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-soft); }
+details[open] summary { margin-bottom: 6px; }
+.card { display: flex; gap: 10px; align-items: flex-start; text-align: left; width: 100%; box-shadow: none; padding: 9px 10px; }
+.card b { display: block; font-weight: 700; }
+.card .s { color: var(--ink-soft); font-size: 13px; }
+.card .swatch { margin-top: 3px; }
+.list { display: flex; flex-direction: column; gap: 6px; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; }
+.legend span { display: inline-flex; gap: 6px; align-items: center; }
+.battle { border-left: 3px solid var(--line); padding-left: 10px; font-size: 14px; line-height: 1.4; }
+.battle b { font-weight: 700; }
+.win { font-family: var(--f-mono); font-size: 11px; color: var(--ink-soft); }
+.credit { margin-top: auto; font-size: 11.5px; color: var(--ink-soft); line-height: 1.4; }
+.credit a { color: inherit; }
+
+.timeline { background: var(--paper); border-top: 1px solid var(--line); padding: 8px 16px calc(10px + env(safe-area-inset-bottom, 0px)); display: grid; grid-template-columns: auto 1fr auto; gap: 4px 12px; align-items: center; }
+.tl-head { grid-column: 1 / -1; display: flex; gap: 10px; align-items: center; min-height: 24px; font-size: 13px; color: var(--ink-soft); flex-wrap: wrap; }
+.tl-head b { color: var(--ink); }
+.tl-head button { padding: 2px 10px; box-shadow: none; font-size: 13px; }
+.track { position: relative; min-width: 0; }
+.bands { position: relative; height: 20px; }
+.band { position: absolute; top: 0; height: 18px; border-radius: 3px; font-size: 10.5px; line-height: 18px; padding: 0 4px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; color: var(--ink); background: hsl(var(--h) var(--era-s) var(--era-l)); }
+.band.cur { box-shadow: inset 0 0 0 1.5px var(--ink); }
+.dim .band { opacity: .35; }
+.lanes { position: relative; }
+.warbar { position: absolute; height: 8px; border-radius: 4px; padding: 0; border: 0; box-shadow: none; cursor: pointer; min-width: 6px; }
+.warbar:hover { outline: 2px solid var(--ink); }
+.pin { position: absolute; top: 2px; width: 12px; height: 12px; border-radius: 50%; padding: 0; border: 2px solid var(--paper); box-shadow: 0 0 0 1px var(--ink-soft); cursor: pointer; transform: translateX(-50%); }
+#slider { width: 100%; margin: 0; accent-color: var(--accent); height: 24px; display: block; }
+.ticks { position: relative; height: 16px; font-family: var(--f-mono); font-size: 10.5px; color: var(--ink-soft); }
+.ticks span { position: absolute; transform: translateX(-50%); white-space: nowrap; }
+.ticks span:first-child { transform: translateX(-8px); }
+.ticks span:last-child { transform: translateX(calc(-100% + 8px)); }
+.step { width: 34px; height: 34px; padding: 0; font-size: 18px; line-height: 1; box-shadow: none; }
+#tip { position: absolute; pointer-events: none; background: var(--paper); border: 1px solid var(--line); border-radius: 6px; padding: 3px 8px; font-size: 13px; box-shadow: var(--shadow); white-space: nowrap; }
+
+@media (max-width: 760px) {
+  .panel { top: auto; left: 8px; right: 8px; bottom: 8px; width: auto; max-height: 44%; }
+  .panel.collapsed .panel-body { display: none; }
+  .period { font-size: 24px; }
+  .panel-head { padding: 10px 14px 8px; cursor: pointer; }
+  .panel-body { padding: 10px 14px 14px; }
+  .ticks span.minor, .band.short { color: transparent; }
+  .tabs button { padding: 5px 10px; }
+}
+@media (prefers-reduced-motion: reduce) { .pols, .pol { transition: none; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="stage">
+    <svg id="map" role="img" aria-label="World map for the selected period"></svg>
+    <div class="top">
+      <h1>World Through Time</h1>
+      <div class="tabs" role="tablist" aria-label="Map view">
+        <button type="button" role="tab" data-mode="map" aria-selected="true">Borders</button>
+        <button type="button" role="tab" data-mode="wars" aria-selected="false">Wars</button>
+        <button type="button" role="tab" data-mode="religions" aria-selected="false">Religions</button>
+      </div>
+      <div class="row"><button id="btnWorld" type="button">World</button><button id="btnEurope" type="button">Europe</button></div>
+    </div>
+    <aside class="panel" id="panel" aria-live="polite">
+      <div class="panel-head" id="panelHead"></div>
+      <div class="panel-body" id="panelBody"></div>
+    </aside>
+    <div id="tip" hidden></div>
+  </div>
+  <div class="timeline">
+    <div class="tl-head" id="tlHead"></div>
+    <button class="step" id="prev" type="button" aria-label="Previous">&#8249;</button>
+    <div class="track" id="track">
+      <div class="bands" id="bands"></div>
+      <div class="lanes" id="lanes"></div>
+      <input id="slider" type="range" min="0" max="45" step="1" value="27" aria-label="Time">
+      <div class="ticks" id="ticks"></div>
+    </div>
+    <button class="step" id="next" type="button" aria-label="Next">&#8250;</button>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<script>
+(async function () {
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const reduce = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const isPhone = () => innerWidth <= 760;
+
+  const svg = d3.select('#map');
+  const defs = svg.append('defs');
+  const root = svg.append('g');
+  const proj = d3.geoNaturalEarth1();
+  const path = d3.geoPath(proj);
+  const sphere = root.append('path').attr('class', 'sphere');
+  const grat = root.append('path').attr('class', 'grat');
+  const landG = root.append('path').attr('class', 'land');
+  const polG = root.append('g').attr('class', 'pols');
+  const lblG = root.append('g');
+  const ovG = root.append('g');
+  const tip = $('tip');
+
+  const get = f => fetch('data/' + f).then(r => r.json());
+  const [timeline, land, synopses, wars, rel] = await Promise.all(
+    ['timeline.json', 'land.json', 'synopses.json', 'wars.json', 'religions.json'].map(get));
+  const snaps = timeline.snapshots, N = snaps.length;
+  const faithById = Object.fromEntries(rel.faiths.map(f => [f.id, f]));
+  const storyById = Object.fromEntries(rel.stories.map(s => [s.id, s]));
+  const cache = {};
+  const loadBorders = f => cache[f] || (cache[f] = get('borders_' + f + '.json'));
+
+  // ---------- eras ----------
+  const ERAS = [
+    ['Prehistory', 0, 0, 30], ['Bronze Age', 1, 2, 38], ['Iron Age', 3, 3, 20], ['Classical Antiquity', 4, 12, 210],
+    ['Late Antiquity', 13, 15, 250], ['Early Middle Ages', 16, 19, 140], ['High Middle Ages', 20, 22, 110],
+    ['Late Middle Ages', 23, 23, 0], ['Renaissance & Exploration', 24, 25, 330], ['Scientific Revolution', 26, 26, 190],
+    ['Enlightenment', 27, 28, 48], ['Age of Revolutions', 29, 30, 8], ['Industrial Age', 31, 33, 200],
+    ['World Wars', 34, 37, 355], ['Cold War', 38, 41, 225], ['Information Age', 42, 45, 170]];
+  const eraOf = i => ERAS.find(e => i >= e[1] && i <= e[2]);
+
+  // year -> period index, and fractional slider position
+  function periodOf(y) {
+    if (y === 0) y = 1;
+    for (let i = 0; i < N; i++) if (y <= snaps[i].span[1]) return i;
+    return N - 1;
+  }
+  function posOf(y) {
+    if (y === 0) y = 1;
+    const i = periodOf(y), [a, b] = snaps[i].span;
+    return Math.max(0, Math.min(N - 1, i - .5 + Math.max(0, Math.min(1, (y - a) / (b - a + 1)))));
+  }
+  const xcss = (p, max) => `calc(${p / max} * (100% - 16px) + 8px)`;
+  const fmtYear = y => y < 0 ? (-y) + ' BC' : (y < 1000 ? 'AD ' + y : '' + y);
+
+  // ---------- colour ----------
+  const HUES = [8, 24, 40, 62, 95, 140, 168, 192, 212, 236, 262, 292, 322, 345];
+  const FIXED = { 'Roman Empire': 0, 'Roman Republic': 0, 'Rome': 0, 'Eastern Roman Empire': 280, 'Byzantine Empire': 280,
+    'Ottoman Empire': 152, 'France': 214, 'Holy Roman Empire': 44, 'Russian Empire': 120, 'USSR': 356, 'Spain': 30,
+    'United States': 220, 'United States of America': 220, 'China': 8, 'Mongol Empire': 95 };
+  const hashHue = name => { if (name in FIXED) return FIXED[name]; let h = 0; for (const c of name) h = (h * 31 + c.charCodeAt(0)) >>> 0; return HUES[h % HUES.length]; };
+  const polFill = n => `hsl(${hashHue(n)} var(--pol-s) var(--pol-l))`;
+  const warColor = w => `hsl(${hashHue(w.id + 'x')} 55% 48%)`;
+  function faithAt(region, i) {
+    const pts = rel.regionReligion[region]; if (!pts) return null;
+    let f = null; for (const [k, id] of pts) if (k <= i) f = id; return faithById[f] || null;
+  }
+
+  // ---------- state ----------
+  const S = { mode: 'map', detail: null, idx: 27, step: 0, selected: null, features: [], k: 1 };
+  let W = 0, H = 0;
+
+  function layout() {
+    const r = svg.node().getBoundingClientRect(); W = r.width; H = r.height;
+    proj.fitExtent([[4, 4], [W - 4, H - 4]], { type: 'Sphere' });
+    sphere.attr('d', path({ type: 'Sphere' }));
+    grat.attr('d', path(d3.geoGraticule10()));
+    landG.attr('d', path(land));
+    polG.selectAll('path').attr('d', path);
+    computeLabels(); drawLabels(); drawOverlay(false);
+  }
+
+  const zoom = d3.zoom().scaleExtent([.5, 60]).on('zoom', e => {
+    root.attr('transform', e.transform); S.k = e.transform.k; drawLabels(); scaleOverlay();
+  });
+  svg.call(zoom).on('dblclick.zoom', null);
+  function zoomToBounds(b, maxK = 40, dur = 750) {
+    const [[x0, y0], [x1, y1]] = b;
+    const panelW = isPhone() ? 0 : Math.min(380, W * .34) + 32;
+    const vw = W - panelW, vh = isPhone() ? H * .52 : H;
+    const s = Math.min(maxK, .9 / Math.max((x1 - x0) / vw, (y1 - y0) / vh));
+    const t = d3.zoomIdentity.translate(vw / 2, vh / 2).scale(s).translate(-(x0 + x1) / 2, -(y0 + y1) / 2);
+    svg.transition().duration(reduce() ? 0 : dur).call(zoom.transform, t);
+  }
+  const ptsBounds = pts => path.bounds({ type: 'MultiPoint', coordinates: pts });
+  const circles = list => ({ type: 'FeatureCollection', features: list.map(t => ({ type: 'Feature', geometry: d3.geoCircle().center([t.lon, t.lat]).radius(t.r)() })) });
+
+  // ---------- labels ----------
+  let labels = [];
+  function computeLabels() {
+    labels = S.features.map(f => {
+      let best = null, ba = -1;
+      for (const poly of f.geometry.coordinates) { const g = { type: 'Polygon', coordinates: poly }; const a = path.area(g); if (a > ba) { ba = a; best = g; } }
+      const [x, y] = path.centroid(best); const b = path.bounds(best);
+      return { name: f.properties.name, x, y, a: ba, w: b[1][0] - b[0][0] };
+    }).filter(l => isFinite(l.x));
+  }
+  function drawLabels() {
+    const k = S.k, fs = 12 / k;
+    const vis = S.detail ? [] : labels.filter(l => l.a * k * k > 2200 && l.w * k > l.name.length * 5.4);
+    lblG.selectAll('text').data(vis, d => d.name).join('text')
+      .attr('class', 'lbl').attr('x', d => d.x).attr('y', d => d.y)
+      .attr('font-size', d => Math.min(fs * 1.25, fs * Math.max(.85, Math.sqrt(d.a * k * k) / 140)))
+      .attr('stroke-width', 3 / k).text(d => d.name);
+  }
+
+  // ---------- polities ----------
+  async function showBorders(file) {
+    polG.classed('fading', true);
+    const data = await loadBorders(file);
+    S.features = data.features;
+    polG.selectAll('path').data(S.features, d => d.properties.name).join('path')
+      .attr('class', 'pol').attr('d', path)
+      .on('click', (e, d) => { e.stopPropagation(); onPolity(d); })
+      .on('mousemove', (e, d) => showTip(e, d.properties.name))
+      .on('mouseleave', hideTip);
+    polG.classed('fading', false);
+    computeLabels(); drawLabels(); styleMap();
+  }
+  function styleMap() {
+    const d = S.detail;
+    polG.selectAll('path').each(function (f) {
+      const p = f.properties, el = d3.select(this);
+      let fill = polFill(p.name), muted = false, faith = false;
+      if (d && d.kind === 'war') muted = true;
+      else if (d && d.kind === 'religion') {
+        if (d.item.steps[S.step].regions.includes(p.regions[0])) { fill = d.item.color; faith = true; } else muted = true;
+      } else if (S.mode === 'wars') muted = true;
+      else if (S.mode === 'religions') { const fa = faithAt(p.regions[0], S.idx); if (fa) { fill = fa.color; faith = true; } else muted = true; }
+      el.style('fill', fill).classed('muted', muted).classed('faith', faith).classed('sel', p.name === S.selected);
+    });
+    polG.selectAll('path.sel').raise();
+  }
+  function showTip(e, text) {
+    if (isPhone()) return;
+    tip.hidden = false; tip.textContent = text;
+    const r = svg.node().getBoundingClientRect();
+    tip.style.left = (e.clientX - r.left + 14) + 'px'; tip.style.top = (e.clientY - r.top + 10) + 'px';
+  }
+  function hideTip() { tip.hidden = true; }
+
+  function onPolity(f) {
+    if (S.detail) return;
+    S.selected = f.properties.name; styleMap();
+    zoomToBounds(path.bounds(f));
+    renderPanel();
+    $('panel').classList.remove('collapsed');
+  }
+
+  // ---------- overlay: theaters, moves, battles, sites ----------
+  const markerIds = {};
+  function marker(color) {
+    if (markerIds[color]) return markerIds[color];
+    const id = 'arrow' + Object.keys(markerIds).length;
+    defs.append('marker').attr('id', id).attr('viewBox', '0 0 10 10').attr('refX', 6).attr('refY', 5)
+      .attr('markerWidth', 4).attr('markerHeight', 4).attr('orient', 'auto-start-reverse')
+      .append('path').attr('d', 'M0,0 L10,5 L0,10 z').attr('fill', color);
+    return (markerIds[color] = id);
+  }
+  const line = d3.line().curve(d3.curveCatmullRom.alpha(.5));
+  function activeWars() { const [a, b] = snaps[S.idx].span; return wars.filter(w => w.start <= b && w.end >= a); }
+
+  function drawOverlay(animate = true) {
+    ovG.selectAll('*').remove();
+    const d = S.detail;
+    if (!d && S.mode === 'wars') {
+      for (const w of activeWars()) {
+        const col = warColor(w);
+        const g = ovG.append('g').attr('class', 'theater').on('click', e => { e.stopPropagation(); enterWar(w); })
+          .on('mousemove', e => showTip(e, w.name + ': click to explore')).on('mouseleave', hideTip);
+        for (const t of w.theater) g.append('path').attr('d', path(d3.geoCircle().center([t.lon, t.lat]).radius(t.r)())).attr('fill', col).attr('stroke', col);
+        const [x, y] = proj([w.theater[0].lon, w.theater[0].lat]);
+        g.append('text').attr('class', 'tlabel').attr('x', x).attr('y', y).attr('text-anchor', 'middle').text(w.name);
+      }
+    }
+    if (d && d.kind === 'war') {
+      const w = d.item, col = warColor(w);
+      for (const t of w.theater) ovG.append('path').attr('d', path(d3.geoCircle().center([t.lon, t.lat]).radius(t.r)()))
+        .attr('fill', col).attr('fill-opacity', .06).attr('stroke', col).attr('stroke-opacity', .5).attr('stroke-dasharray', '5 4').attr('vector-effect', 'non-scaling-stroke');
+      w.steps.slice(0, S.step).forEach(st => st.battles.forEach(b => mark(b, w.sides[b.winner]?.color || 'gray', true, 'battle')));
+      const st = w.steps[S.step];
+      st.moves.forEach((m, i) => move(m.path, w.sides[m.side]?.color || col, m.label, animate, i));
+      st.battles.forEach(b => mark(b, w.sides[b.winner]?.color || 'gray', false, 'battle'));
+    }
+    if (d && d.kind === 'religion') {
+      const r = d.item, st = r.steps[S.step];
+      (st.moves || []).forEach((m, i) => move(m.path, r.color, m.label, animate, i));
+      r.steps.slice(0, S.step).forEach(s => (s.sites || []).forEach(x => mark(x, r.color, true, 'site')));
+      (st.sites || []).forEach(x => mark(x, r.color, false, 'site'));
+    }
+    scaleOverlay();
+  }
+  function move(pts, color, label, animate, i) {
+    const xy = pts.map(p => proj(p));
+    const p = ovG.append('path').attr('class', 'move').attr('d', line(xy)).attr('stroke', color)
+      .attr('marker-end', `url(#${marker(color)})`);
+    if (animate && !reduce()) {
+      const L = p.node().getTotalLength();
+      p.attr('stroke-dasharray', L + ' ' + L).attr('stroke-dashoffset', L)
+        .transition().delay(i * 250).duration(1300).ease(d3.easeCubicOut).attr('stroke-dashoffset', 0)
+        .on('end', function () { d3.select(this).attr('stroke-dasharray', null); });
+    }
+    if (label) {
+      const j = Math.floor((xy.length - 1) / 2), m = xy[j], n = xy[Math.min(xy.length - 1, j + 1)];
+      ovG.append('text').attr('class', 'move-lbl').attr('data-x', (m[0] + n[0]) / 2).attr('data-y', (m[1] + n[1]) / 2).attr('fill', color).text(label);
+    }
+  }
+  function mark(b, color, past, kind) {
+    const [x, y] = proj([b.lon, b.lat]);
+    const g = ovG.append('g').attr('class', 'mark' + (past ? ' past' : '')).attr('data-x', x).attr('data-y', y)
+      .on('mousemove', e => showTip(e, b.name + (b.year != null ? ' (' + fmtYear(b.year) + ')' : ''))).on('mouseleave', hideTip);
+    if (kind === 'battle') g.append('path').attr('class', 'dot').attr('d', d3.symbol(d3.symbolCross, past ? 70 : 150)()).attr('transform', 'rotate(45)').attr('fill', color);
+    else g.append('circle').attr('class', 'dot').attr('r', past ? 4 : 6).attr('fill', color);
+    if (!past) g.append('text').attr('x', 10).attr('y', 4).attr('font-size', 13).text(b.name);
+  }
+  function scaleOverlay() {
+    const k = S.k;
+    ovG.selectAll('.move').attr('stroke-width', 3.2 / k);
+    ovG.selectAll('.move-lbl').attr('font-size', 12 / k).attr('stroke-width', 3 / k)
+      .attr('x', function () { return +this.dataset.x + 6 / k; }).attr('y', function () { return +this.dataset.y - 6 / k; });
+    ovG.selectAll('.mark').attr('transform', function () { return `translate(${this.dataset.x},${this.dataset.y}) scale(${1 / k})`; });
+    ovG.selectAll('.tlabel').attr('font-size', 15 / k).attr('stroke-width', 3 / k);
+  }
+
+  // ---------- detail views ----------
+  function enterWar(w) {
+    S.detail = { kind: 'war', item: w, back: S.idx }; S.step = 0; S.selected = null;
+    showStep(0);
+  }
+  function enterReligion(r) {
+    S.detail = { kind: 'religion', item: r, back: S.idx }; S.step = 0; S.selected = null;
+    showStep(0);
+  }
+  function stepBounds(st, pad) {
+    const pts = [...(st.battles || []), ...(st.sites || [])].map(b => [b.lon, b.lat]).concat((st.moves || []).flatMap(m => m.path));
+    if (!pts.length) return null;
+    const lon = pts.map(p => p[0]), lat = pts.map(p => p[1]);
+    const x0 = Math.min(...lon) - pad, x1 = Math.max(...lon) + pad, y0 = Math.max(-60, Math.min(...lat) - pad), y1 = Math.min(80, Math.max(...lat) + pad);
+    return ptsBounds([[x0, y0], [x1, y0], [x0, y1], [x1, y1], [(x0 + x1) / 2, y0], [(x0 + x1) / 2, y1]]);
+  }
+  async function showStep(n) {
+    const it = S.detail.item; S.step = n;
+    const b = stepBounds(it.steps[n], S.detail.kind === 'war' ? 5 : 10);
+    if (b) zoomToBounds(b, 10);
+    renderTimeline(); renderPanel();
+    await showBorders(snaps[periodOf(it.steps[n].year)].file);
+    if (S.detail && S.detail.item === it && S.step === n) drawOverlay(true);
+  }
+  function exitDetail() { const back = S.detail.back; S.detail = null; setPeriod(back); }
+
+  // ---------- period ----------
+  async function setPeriod(i) {
+    S.idx = i;
+    renderTimeline(); renderPanel(); drawOverlay(false);
+    await showBorders(snaps[i].file);
+    if (S.idx !== i || S.detail) return;
+    if (S.selected && !S.features.some(f => f.properties.name === S.selected)) { S.selected = null; renderPanel(); }
+    styleMap();
+  }
+
+  // ---------- panel ----------
+  function events(text) {
+    if (!text) return '';
+    return '<ul>' + text.split('\n').filter(Boolean).map(line => {
+      const m = line.match(/^((?:c\. )?\d[\d–\-\/ ]*(?:BC|AD)?(?: & \d+)?):\s*(.*)$/);
+      return '<li>' + (m ? `<span class="yr">${esc(m[1])}</span> ${esc(m[2])}` : esc(line)) + '</li>';
+    }).join('') + '</ul>';
+  }
+  function regionBlock(r, open) {
+    const cell = snaps[S.idx].regions[r], syn = synopses[r]?.[S.idx];
+    const held = cell && cell.held ? `<span class="held">${esc(cell.held)} rule</span>` : '';
+    const ev = cell && cell.text ? `<div class="from">From your timeline</div>${events(cell.text)}` : '';
+    const body = `${syn ? `<p class="syn">${esc(syn)}</p>` : ''}${ev}`;
+    if (open) return `<div class="sec"><h3>${esc(r)}${held}</h3>${body}</div>`;
+    return `<details><summary>${esc(r)} ${held}</summary><div class="sec">${body}</div></details>`;
+  }
+  const credit = '<p class="credit">Events come from your World History timeline; synopses, wars and religions were written for this map. Borders are approximate, from <a href="https://github.com/aourednik/historical-basemaps" target="_blank" rel="noopener">historical-basemaps</a> (A. Ourednik, GPL-3.0), using the closest available year.</p>';
+  const warCard = w => `<button type="button" class="card" data-war="${w.id}"><i class="swatch" style="background:${warColor(w)}"></i><span><b>${esc(w.name)}</b><span class="s">${fmtYear(w.start)} to ${fmtYear(w.end)}</span></span></button>`;
+  const storyCard = (st, sub) => `<button type="button" class="card" data-story="${st.id}"><i class="swatch" style="background:${st.color}"></i><span><b>${esc(st.name)}</b><span class="s">${esc(sub)}</span></span></button>`;
+
+  function renderPanel() {
+    const s = snaps[S.idx], d = S.detail, era = eraOf(S.idx);
+    let head = '', html = '';
+    if (d && d.kind === 'war') {
+      const w = d.item, st = w.steps[S.step];
+      head = `<p class="kicker">${esc(w.name)} · ${fmtYear(w.start)} to ${fmtYear(w.end)}</p><p class="period">${esc(st.title)}</p><div class="meta">${esc(st.label)} · step ${S.step + 1} of ${w.steps.length}</div>`;
+      html += `<div class="legend">${w.sides.map(x => `<span><i class="swatch" style="background:${x.color}"></i>${esc(x.name)}</span>`).join('')}</div>`;
+      html += `<p class="syn">${esc(st.text)}</p>`;
+      if (st.battles.length) html += '<div class="sec"><h3>Major battles</h3><div class="list">' + st.battles.map(b =>
+        `<div class="battle" style="border-color:${w.sides[b.winner]?.color || 'var(--line)'}"><b>${esc(b.name)}</b> <span class="win">${fmtYear(b.year)}${b.winner != null && w.sides[b.winner] ? ' · ' + esc(w.sides[b.winner].name) + ' victory' : ''}</span><div>${esc(b.text)}</div></div>`).join('') + '</div></div>';
+      html += `<details${S.step === 0 ? ' open' : ''}><summary>About this war</summary><p class="syn" style="font-size:15px">${esc(w.summary)}</p></details>`;
+    } else if (d && d.kind === 'religion') {
+      const r = d.item, st = r.steps[S.step];
+      head = `<p class="kicker">${esc(r.name)} · founded ${esc(r.founded)}</p><p class="period">${esc(st.title)}</p><div class="meta">${esc(st.label)} · step ${S.step + 1} of ${r.steps.length}</div>`;
+      html += `<p class="syn">${esc(st.text)}</p>`;
+      if (st.sites?.length) html += '<div class="sec"><h3>Key places</h3><ul>' + st.sites.map(x => `<li><b>${esc(x.name)}</b>: ${esc(x.text)}</li>`).join('') + '</ul></div>';
+      if (st.regions?.length) html += `<div class="sec"><h3>Established in</h3><p class="hint">${st.regions.map(esc).join(', ')}</p></div>`;
+      html += `<details${S.step === 0 ? ' open' : ''}><summary>About ${esc(r.name)}</summary><p class="syn" style="font-size:15px">${esc(r.summary)}</p></details>`;
+    } else {
+      head = `<p class="kicker">${esc(era[0])}</p><p class="period">${esc(s.label)}</p><div class="meta">${esc(s.century)} · borders ${esc(s.borders)}</div>`;
+      const f = S.features.find(x => x.properties.name === S.selected);
+      if (f) {
+        const p = f.properties, fa = faithAt(p.regions[0], S.idx);
+        const sw = S.mode === 'religions' && fa ? fa.color : polFill(p.name);
+        html += `<div class="focus"><h2><span class="swatch" style="background:${sw}"></span>${esc(p.name)}</h2>` +
+          (p.sub ? `<div class="sub">Part of ${esc(p.sub)}</div>` : '') + (fa ? `<div class="sub">Main faith: ${esc(fa.name)}</div>` : '') + '</div>';
+        html += regionBlock(p.regions[0], true);
+        p.regions.slice(1).forEach(r => html += regionBlock(r, false));
+        if (fa && fa.story && storyById[fa.story]) html += storyCard(storyById[fa.story], 'Follow how this faith spread');
+      } else if (S.mode === 'wars') {
+        const act = activeWars();
+        html += `<div class="sec"><h3>Wars in this period</h3>${act.length ? '<div class="list">' + act.map(warCard).join('') + '</div>' : '<p class="hint">None of the major wars on this map falls in this period. Pick one below or from the coloured bars on the timeline.</p>'}</div>`;
+        html += `<details${act.length ? '' : ' open'}><summary>All major wars</summary><div class="list">${wars.map(warCard).join('')}</div></details>`;
+      } else if (S.mode === 'religions') {
+        const counts = {};
+        S.features.forEach(x => { const fa = faithAt(x.properties.regions[0], S.idx); if (fa) counts[fa.id] = (counts[fa.id] || 0) + 1; });
+        const ids = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
+        html += '<p class="hint">Each state is shaded by the main faith of its region. Pick a faith to follow how it spread.</p><div class="list">' +
+          ids.map(id => { const fa = faithById[id]; return fa.story && storyById[fa.story]
+            ? `<button type="button" class="card" data-story="${fa.story}"><i class="swatch" style="background:${fa.color}"></i><span><b>${esc(fa.name)}</b><span class="s">Follow its spread</span></span></button>`
+            : `<div class="card" style="border:1px solid var(--line);border-radius:6px"><i class="swatch" style="background:${fa.color}"></i><span><b>${esc(fa.name)}</b></span></div>`; }).join('') + '</div>';
+        const shown = new Set(ids.map(id => faithById[id].story));
+        const others = rel.stories.filter(st => !shown.has(st.id));
+        if (others.length) html += `<details><summary>Other faiths</summary><div class="list">${others.map(st => storyCard(st, 'Founded ' + st.founded)).join('')}</div></details>`;
+      } else {
+        html += '<p class="hint">Click any state to zoom in and read what was going on there.</p>';
+        if (s.world['Key Events']) html += `<div class="sec"><h3>World</h3>${events(s.world['Key Events'])}</div>`;
+        if (s.world['Global Events']) html += `<div class="sec"><h3>Around the globe</h3>${events(s.world['Global Events'])}</div>`;
+        if (s.world['European Events']) html += `<div class="sec"><h3>Europe</h3>${events(s.world['European Events'])}</div>`;
+      }
+    }
+    $('panelHead').innerHTML = head;
+    $('panelBody').innerHTML = html + credit;
+  }
+  function onPick(e) {
+    const b = e.target.closest('[data-war],[data-story]'); if (!b) return;
+    if (b.dataset.war) enterWar(wars.find(w => w.id === b.dataset.war)); else enterReligion(storyById[b.dataset.story]);
+    $('panel').classList.remove('collapsed');
+  }
+  $('panelBody').addEventListener('click', onPick);
+  $('lanes').addEventListener('click', onPick);
+
+  // ---------- timeline ----------
+  const slider = $('slider');
+  function renderTimeline() {
+    const d = S.detail, bands = $('bands'), lanes = $('lanes'), ticks = $('ticks'), head = $('tlHead');
+    if (d) {
+      const it = d.item, n = it.steps.length;
+      slider.max = n - 1; slider.value = S.step;
+      slider.setAttribute('aria-label', it.name + ' timeline');
+      head.innerHTML = `<button type="button" id="back">&#8249; Back to world timeline</button><span><b>${esc(it.name)}</b></span>`;
+      $('back').onclick = exitDetail;
+      bands.style.display = 'none'; lanes.innerHTML = ''; lanes.style.height = '0';
+      ticks.innerHTML = it.steps.map((st, i) => `<span class="${i === 0 || i === n - 1 ? '' : 'minor'}" style="left:${xcss(i, n - 1)}">${esc(st.label)}</span>`).join('');
+      return;
+    }
+    slider.max = N - 1; slider.value = S.idx; slider.setAttribute('aria-label', 'Time period');
+    const era = eraOf(S.idx);
+    head.innerHTML = S.mode === 'wars' ? '<span><b>Wars:</b> each coloured bar is a major war. Click one to explore it.</span>'
+      : S.mode === 'religions' ? '<span><b>Religions:</b> each dot marks when a faith began. Click one to follow its spread.</span>'
+      : `<span>Era: <b>${esc(era[0])}</b></span>`;
+    bands.style.display = '';
+    bands.className = 'bands' + (S.mode === 'map' ? '' : ' dim');
+    bands.innerHTML = ERAS.map(e => {
+      const l = Math.max(0, e[1] - .5), r = Math.min(N - 1, e[2] + .5);
+      return `<div class="band${e === era ? ' cur' : ''}${e[2] - e[1] < 2 ? ' short' : ''}" title="${esc(e[0])}" style="--h:${e[3]};left:${xcss(l, N - 1)};width:calc(${(r - l) / (N - 1)} * (100% - 16px) - 1px)">${esc(e[0])}</div>`;
+    }).join('');
+    if (S.mode === 'wars') {
+      const laneEnd = []; let html = '';
+      wars.slice().sort((a, b) => a.start - b.start).forEach(w => {
+        const l = posOf(w.start), r = Math.max(posOf(w.end), l + .25);
+        let lane = laneEnd.findIndex(x => x < l - .05); if (lane < 0) { lane = laneEnd.length; laneEnd.push(r); } else laneEnd[lane] = r;
+        html += `<button type="button" class="warbar" data-war="${w.id}" title="${esc(w.name)} (${fmtYear(w.start)} to ${fmtYear(w.end)})" aria-label="${esc(w.name)}" style="background:${warColor(w)};top:${2 + lane * 11}px;left:${xcss(l, N - 1)};width:calc(${(r - l) / (N - 1)} * (100% - 16px))"></button>`;
+      });
+      lanes.innerHTML = html; lanes.style.height = (laneEnd.length * 11 + 4) + 'px';
+    } else if (S.mode === 'religions') {
+      lanes.innerHTML = rel.stories.map(st => `<button type="button" class="pin" data-story="${st.id}" title="${esc(st.name)}, founded ${esc(st.founded)}" aria-label="${esc(st.name)}" style="background:${st.color};left:${xcss(posOf(st.steps[0].year), N - 1)}"></button>`).join('');
+      lanes.style.height = '18px';
+    } else { lanes.innerHTML = ''; lanes.style.height = '0'; }
+    const major = [0, 4, 10, 13, 18, 23, 27, 31, 35, 40, 45];
+    const tl = i => i === 10 ? 'AD 1' : snaps[i].label.replace(/^(\d+)–\d+/, '$1').replace('Before 3000 BC', '<3000 BC');
+    ticks.innerHTML = major.map(i => `<span class="${[0, 23, 45].includes(i) ? '' : 'minor'}" style="left:${xcss(i, N - 1)}">${esc(tl(i))}</span>`).join('');
+  }
+  const go = v => S.detail ? showStep(v) : setPeriod(v);
+  slider.addEventListener('input', () => go(+slider.value));
+  $('prev').onclick = () => go(Math.max(0, +slider.value - 1));
+  $('next').onclick = () => go(Math.min(+slider.max, +slider.value + 1));
+
+  // ---------- controls ----------
+  document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => {
+    S.mode = b.dataset.mode;
+    document.querySelectorAll('.tabs button').forEach(x => x.setAttribute('aria-selected', x === b));
+    if (S.detail) { S.detail = null; setPeriod(S.idx); return; }
+    styleMap(); drawOverlay(false); renderTimeline(); renderPanel(); drawLabels();
+  });
+  const worldView = (dur = 750) => zoomToBounds(path.bounds({ type: 'Sphere' }), 40, dur);
+  $('btnWorld').onclick = () => worldView();
+  $('btnEurope').onclick = () => zoomToBounds(ptsBounds([[-11, 35], [42, 35], [-11, 66], [42, 66], [15, 71]]));
+  svg.on('click', () => { if (S.selected && !S.detail) { S.selected = null; styleMap(); renderPanel(); } });
+  $('panelHead').onclick = () => { if (isPhone()) $('panel').classList.toggle('collapsed'); };
+  addEventListener('keydown', e => { if (e.key === 'Escape' && S.detail) exitDetail(); });
+  addEventListener('resize', layout);
+
+  layout();
+  worldView(0);
+  await setPeriod(S.idx);
+})();
+</script>
+</body>
+</html>
