@@ -35,6 +35,7 @@ body { margin: 0; }
   --shadow: 0 6px 24px rgba(30,42,49,.14);
   --era-l: 80%;
   --era-s: 30%;
+  --side-op: .78;
   --f-display: "IM Fell English", "Iowan Old Style", Georgia, serif;
   --f-body: "Alegreya Sans", "Segoe UI", system-ui, sans-serif;
   --f-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
@@ -43,13 +44,13 @@ body { margin: 0; }
   --ocean: #0e171d; --grat: #18242c; --land: #222b31; --land-edge: #2f3a41;
   --ink: #e6e3da; --ink-soft: #9aa6ac; --paper: #151d22; --line: #2c373e; --accent: #e08a68;
   --pol-s: 30%; --pol-l: 36%; --pol-muted: #2b353b; --pol-edge: #0e171d; --faith-op: .62; --sel: #f3efe4;
-  --shadow: 0 6px 24px rgba(0,0,0,.45); --era-l: 30%; --era-s: 22%;
+  --shadow: 0 6px 24px rgba(0,0,0,.45); --era-l: 30%; --era-s: 22%; --side-op: .62;
   color-scheme: dark; } }
 :root[data-theme="dark"] {
   --ocean: #0e171d; --grat: #18242c; --land: #222b31; --land-edge: #2f3a41;
   --ink: #e6e3da; --ink-soft: #9aa6ac; --paper: #151d22; --line: #2c373e; --accent: #e08a68;
   --pol-s: 30%; --pol-l: 36%; --pol-muted: #2b353b; --pol-edge: #0e171d; --faith-op: .62; --sel: #f3efe4;
-  --shadow: 0 6px 24px rgba(0,0,0,.45); --era-l: 30%; --era-s: 22%;
+  --shadow: 0 6px 24px rgba(0,0,0,.45); --era-l: 30%; --era-s: 22%; --side-op: .62;
   color-scheme: dark; }
 
 html, body { height: 100%; }
@@ -77,6 +78,23 @@ body { background: var(--ocean); color: var(--ink); font-family: var(--f-body); 
 .move-lbl { font-family: var(--f-body); font-style: italic; paint-order: stroke; stroke: var(--paper); stroke-linejoin: round; }
 .mark .dot { stroke: var(--paper); stroke-width: 1.5; }
 .mark.past { opacity: .45; }
+.pol.side { fill-opacity: var(--side-op); }
+.pol.minor { fill: transparent !important; stroke: none; pointer-events: none; }
+.row button[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.front-halo { fill: none; stroke: var(--paper); stroke-linecap: round; stroke-linejoin: round; opacity: .85; }
+.front { fill: none; stroke: var(--ink); stroke-linecap: butt; stroke-linejoin: round; }
+.front-lbl { font-family: var(--f-mono); fill: var(--ink); paint-order: stroke; stroke: var(--paper); stroke-linejoin: round; letter-spacing: .04em; }
+.move.ghost { opacity: .22; }
+.move-lbl .cmd { font-style: normal; font-weight: 700; }
+.mark .ico { stroke: var(--paper); stroke-width: 1.5; }
+.sides { display: flex; flex-direction: column; gap: 8px; }
+.sides .sd { display: grid; grid-template-columns: 14px 1fr; gap: 2px 8px; align-items: center; font-size: 14px; }
+.sides .sd b { font-weight: 700; }
+.sides .ld { grid-column: 2; color: var(--ink-soft); font-size: 13px; }
+.mv { font-size: 14px; line-height: 1.4; display: flex; gap: 8px; align-items: baseline; }
+.mv .swatch { width: 10px; height: 10px; border-radius: 50%; }
+.ev-k { font-family: var(--f-mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-soft); }
+.list h4 { margin: 6px 0 0; font-size: 11.5px; letter-spacing: .09em; text-transform: uppercase; color: var(--ink-soft); }
 
 .top { position: absolute; top: calc(12px + env(safe-area-inset-top, 0px)); left: 16px; display: flex; flex-direction: column; gap: 8px; align-items: flex-start; max-width: calc(100% - 32px); }
 .top h1 { margin: 0; font-family: var(--f-display); font-weight: 400; font-size: clamp(22px, 3vw, 30px); line-height: 1; }
@@ -131,7 +149,7 @@ details[open] summary { margin-bottom: 6px; }
 .band.cur { box-shadow: inset 0 0 0 1.5px var(--ink); }
 .dim .band { opacity: .35; }
 .lanes { position: relative; }
-.warbar { position: absolute; height: 8px; border-radius: 4px; padding: 0; border: 0; box-shadow: none; cursor: pointer; min-width: 6px; }
+.warbar { position: absolute; height: 6px; border-radius: 3px; padding: 0; border: 0; box-shadow: none; cursor: pointer; min-width: 6px; }
 .warbar:hover { outline: 2px solid var(--ink); }
 .pin { position: absolute; top: 2px; width: 12px; height: 12px; border-radius: 50%; padding: 0; border: 2px solid var(--paper); box-shadow: 0 0 0 1px var(--ink-soft); cursor: pointer; transform: translateX(-50%); }
 #slider { width: 100%; margin: 0; accent-color: var(--accent); height: 24px; display: block; }
@@ -165,7 +183,7 @@ details[open] summary { margin-bottom: 6px; }
         <button type="button" role="tab" data-mode="wars" aria-selected="false">Wars</button>
         <button type="button" role="tab" data-mode="religions" aria-selected="false">Religions</button>
       </div>
-      <div class="row"><button id="btnWorld" type="button">World</button><button id="btnEurope" type="button">Europe</button></div>
+      <div class="row"><button id="btnWorld" type="button">World</button><button id="btnEurope" type="button">Europe</button><button id="btnDetail" type="button" aria-pressed="false" title="Show every state and people, not just the main civilizations">Detailed borders</button></div>
     </div>
     <aside class="panel" id="panel" aria-live="polite">
       <div class="panel-head" id="panelHead"></div>
@@ -214,7 +232,38 @@ details[open] summary { margin-bottom: 6px; }
   const faithById = Object.fromEntries(rel.faiths.map(f => [f.id, f]));
   const storyById = Object.fromEntries(rel.stories.map(s => [s.id, s]));
   const cache = {};
-  const loadBorders = f => cache[f] || (cache[f] = get('borders_' + f + '.json'));
+  // A ring wound the wrong way covers the whole globe in D3's spherical geometry; flip any such polygon.
+  const fixWinding = fc => {
+    for (const f of fc.features) f.geometry.coordinates = f.geometry.coordinates.map(poly =>
+      d3.geoArea({ type: 'Polygon', coordinates: poly }) > 2 * Math.PI ? poly.map(r => r.slice().reverse()) : poly);
+    return fc;
+  };
+  // Simplified map: subjects and parts join their overlord's colour, and only main civilizations keep a colour.
+  // Before 1900 that is the three largest powers per region, huge empires and famous small ones; from 1900 every real state.
+  const KM2_PER_SR = 6371 * 6371;
+  const FAMOUS = /egypt|sumer|akkad|babylon|assyria|hittite|mycen|minoa|athen|sparta|greek|macedon|rom[ae]|carthag|phoenic|israel|juda|persia|maya|aztec|mexica|inca|olmec|harappa|indus|shang|zhou|qin|venice|venezia|genoa|papal|byzantine|kush|axum|aksum|mali|songhai|ghana|zimbabwe|khmer|champa|silla|goguryeo|baekje|japan|yamato|korea|joseon|goryeo|portugal|england|scotland|hungary|poland|bohemia|serbia|bulgaria|armenia|georgia|teotihuacan|zapotec|toltec|chim[uú]|moche|nazca|tiwanaku|wari|cahokia|ethiopia/i;
+  // archaeological cultures and ways of life ("Amazon hunter-gatherers", "Lusatian culture") are not civilizations
+  const NOT_STATE = /hunter|gatherer|forag|fich|fisher|farmers|pastoral|herder|cultures?\b|khoi|bant[ou]|aborigin|siberians/i;
+  function classify(fc, file) {
+    const modern = fileYear(file) >= 1900, minKm2 = modern ? 10e3 : 1.5e6;
+    const gArea = {}, gHome = {};
+    for (const f of fc.features) {
+      const p = f.properties;
+      f.area = d3.geoArea(f) * KM2_PER_SR;
+      f.group = (p.sub || p.part || p.name).trim();
+      gArea[f.group] = (gArea[f.group] || 0) + f.area;
+      if (!gHome[f.group] || f.area > gHome[f.group][1]) gHome[f.group] = [p.regions[0], f.area];
+    }
+    const byRegion = {};
+    for (const g in gArea) if (!NOT_STATE.test(g)) (byRegion[gHome[g][0]] ||= []).push(g);
+    const top = new Set(Object.values(byRegion).flatMap(gs => gs.sort((a, b) => gArea[b] - gArea[a]).slice(0, modern ? 2 : 3)));
+    for (const f of fc.features) f.major = FAMOUS.test(f.group) || FAMOUS.test(f.properties.name) ||
+      (!NOT_STATE.test(f.group) && (gArea[f.group] >= minKm2 || top.has(f.group)));
+    return fc;
+  }
+  const loadBorders = f => cache[f] || (cache[f] = get('borders_' + f + '.json').then(fixWinding).then(fc => classify(fc, f)));
+  const fileYear = f => f.startsWith('bc') ? -f.slice(2) : +f;
+  const fileForYear = y => timeline.borderFiles.reduce((best, f) => fileYear(f) <= y ? f : best, timeline.borderFiles[0]);
 
   // ---------- eras ----------
   const ERAS = [
@@ -253,7 +302,11 @@ details[open] summary { margin-bottom: 6px; }
   }
 
   // ---------- state ----------
+  let detailed = false;
+  try { detailed = localStorage.getItem('wtt-detailed') === '1'; } catch (e) {}
   const S = { mode: 'map', detail: null, idx: 27, step: 0, selected: null, features: [], k: 1 };
+  // simplified drawing applies everywhere except inside a war, where every involved state must show
+  const simple = () => !detailed && !(S.detail && S.detail.kind === 'war');
   let W = 0, H = 0;
 
   function layout() {
@@ -284,16 +337,23 @@ details[open] summary { margin-bottom: 6px; }
   // ---------- labels ----------
   let labels = [];
   function computeLabels() {
-    labels = S.features.map(f => {
+    const sm = simple(), byName = new Map();
+    for (const f of S.features) {
+      if (sm && !f.major) continue;
       let best = null, ba = -1;
       for (const poly of f.geometry.coordinates) { const g = { type: 'Polygon', coordinates: poly }; const a = path.area(g); if (a > ba) { ba = a; best = g; } }
       const [x, y] = path.centroid(best); const b = path.bounds(best);
-      return { name: f.properties.name, x, y, a: ba, w: b[1][0] - b[0][0] };
-    }).filter(l => isFinite(l.x));
+      const name = sm ? f.group : f.properties.name;
+      if (isFinite(x) && !(byName.get(name)?.a > ba)) byName.set(name, { name, x, y, a: ba, w: b[1][0] - b[0][0] });
+    }
+    labels = [...byName.values()];
   }
   function drawLabels() {
     const k = S.k, fs = 12 / k;
-    const vis = S.detail ? [] : labels.filter(l => l.a * k * k > 2200 && l.w * k > l.name.length * 5.4);
+    const side = sideMap();
+    // the simplified map has few shapes, so it can afford to label smaller ones
+    const [minA, perCh] = simple() ? [700, 4.4] : [2200, 5.4];
+    const vis = S.detail && !side ? [] : labels.filter(l => (!side || side.has(l.name)) && l.a * k * k > minA && l.w * k > l.name.length * perCh);
     lblG.selectAll('text').data(vis, d => d.name).join('text')
       .attr('class', 'lbl').attr('x', d => d.x).attr('y', d => d.y)
       .attr('font-size', d => Math.min(fs * 1.25, fs * Math.max(.85, Math.sqrt(d.a * k * k) / 140)))
@@ -308,24 +368,41 @@ details[open] summary { margin-bottom: 6px; }
     polG.selectAll('path').data(S.features, d => d.properties.name).join('path')
       .attr('class', 'pol').attr('d', path)
       .on('click', (e, d) => { e.stopPropagation(); onPolity(d); })
-      .on('mousemove', (e, d) => showTip(e, d.properties.name))
+      .on('mousemove', (e, d) => showTip(e, polTip(d.properties, d)))
       .on('mouseleave', hideTip);
     polG.classed('fading', false);
     computeLabels(); drawLabels(); styleMap();
   }
   function styleMap() {
-    const d = S.detail;
+    const d = S.detail, side = sideMap() || new Map(), sm = simple();
     polG.selectAll('path').each(function (f) {
       const p = f.properties, el = d3.select(this);
-      let fill = polFill(p.name), muted = false, faith = false;
-      if (d && d.kind === 'war') muted = true;
-      else if (d && d.kind === 'religion') {
+      let fill = polFill(sm ? f.group : p.name), muted = false, faith = false, war = false;
+      if (d && d.kind === 'war') {
+        const sd = side.get(p.name);
+        if (sd != null && d.item.sides[sd]) { fill = d.item.sides[sd].color; war = true; } else muted = true;
+      } else if (d && d.kind === 'religion') {
         if (d.item.steps[S.step].regions.includes(p.regions[0])) { fill = d.item.color; faith = true; } else muted = true;
       } else if (S.mode === 'wars') muted = true;
       else if (S.mode === 'religions') { const fa = faithAt(p.regions[0], S.idx); if (fa) { fill = fa.color; faith = true; } else muted = true; }
-      el.style('fill', fill).classed('muted', muted).classed('faith', faith).classed('sel', p.name === S.selected);
+      // inside a merged group, paint the shared edges in the group colour so the empire reads as one shape
+      const merged = sm && f.major && !d && S.mode === 'map' && f.group !== p.name;
+      el.style('fill', fill).style('stroke', merged && p.name !== S.selected ? fill : null).classed('minor', sm && !f.major)
+        .classed('muted', muted).classed('faith', faith).classed('side', war).classed('sel', p.name === S.selected);
     });
     polG.selectAll('path.sel').raise();
+  }
+  // polity name -> side index for the current war step (null outside a war)
+  function sideMap() {
+    const d = S.detail; if (!d || d.kind !== 'war') return null;
+    const m = new Map();
+    for (const t of d.item.steps[S.step].territories || []) for (const n of t.polities) m.set(n, t.side);
+    return m;
+  }
+  function polTip(p, f) {
+    if (simple() && f.group !== p.name) return p.name + ' (' + f.group + ')';
+    const side = sideMap(), sd = side && side.get(p.name);
+    return sd != null && S.detail.item.sides[sd] ? p.name + ' (' + S.detail.item.sides[sd].name + ')' : p.name;
   }
   function showTip(e, text) {
     if (isPhone()) return;
@@ -353,7 +430,10 @@ details[open] summary { margin-bottom: 6px; }
       .append('path').attr('d', 'M0,0 L10,5 L0,10 z').attr('fill', color);
     return (markerIds[color] = id);
   }
-  const line = d3.line().curve(d3.curveCatmullRom.alpha(.5));
+  const curve = d3.line().curve(d3.curveCatmullRom.alpha(.5));
+  // a route that crosses the 180th meridian (Japan to Hawaii) is drawn as a great-circle path, which the map splits at the edge
+  const line = (xy, pts) => pts && pts.some((p, i) => i && Math.abs(p[0] - pts[i - 1][0]) > 180)
+    ? path({ type: 'LineString', coordinates: pts }) : curve(xy);
   function activeWars() { const [a, b] = snaps[S.idx].span; return wars.filter(w => w.start <= b && w.end >= a); }
 
   function drawOverlay(animate = true) {
@@ -370,13 +450,12 @@ details[open] summary { margin-bottom: 6px; }
       }
     }
     if (d && d.kind === 'war') {
-      const w = d.item, col = warColor(w);
-      for (const t of w.theater) ovG.append('path').attr('d', path(d3.geoCircle().center([t.lon, t.lat]).radius(t.r)()))
-        .attr('fill', col).attr('fill-opacity', .06).attr('stroke', col).attr('stroke-opacity', .5).attr('stroke-dasharray', '5 4').attr('vector-effect', 'non-scaling-stroke');
-      w.steps.slice(0, S.step).forEach(st => st.battles.forEach(b => mark(b, w.sides[b.winner]?.color || 'gray', true, 'battle')));
-      const st = w.steps[S.step];
-      st.moves.forEach((m, i) => move(m.path, w.sides[m.side]?.color || col, m.label, animate, i));
-      st.battles.forEach(b => mark(b, w.sides[b.winner]?.color || 'gray', false, 'battle'));
+      const w = d.item, st = w.steps[S.step], sc = i => w.sides[i]?.color || warColor(w);
+      (st.fronts || []).forEach(f => front(f));
+      if (S.step > 0) (w.steps[S.step - 1].moves || []).forEach(m => move(m.path, sc(m.side), null, false, 0, true));
+      w.steps.slice(0, S.step).forEach(s => (s.events || []).forEach(b => mark(b, b.winner != null ? sc(b.winner) : 'var(--ink-soft)', true, b.kind)));
+      (st.moves || []).forEach((m, i) => move(m.path, sc(m.side), m.label, animate, i, false, m.commander));
+      (st.events || []).forEach(b => mark(b, b.winner != null ? sc(b.winner) : 'var(--ink-soft)', false, b.kind));
     }
     if (d && d.kind === 'religion') {
       const r = d.item, st = r.steps[S.step];
@@ -386,9 +465,18 @@ details[open] summary { margin-bottom: 6px; }
     }
     scaleOverlay();
   }
-  function move(pts, color, label, animate, i) {
+  function front(f) {
+    const xy = f.path.map(p => proj(p));
+    ovG.append('path').attr('class', 'front-halo').attr('d', line(xy, f.path));
+    ovG.append('path').attr('class', 'front').attr('d', line(xy, f.path));
+    if (f.label) {
+      const m = xy[0];
+      ovG.append('text').attr('class', 'front-lbl').attr('data-x', m[0]).attr('data-y', m[1]).text(f.label);
+    }
+  }
+  function move(pts, color, label, animate, i, ghost, commander) {
     const xy = pts.map(p => proj(p));
-    const p = ovG.append('path').attr('class', 'move').attr('d', line(xy)).attr('stroke', color)
+    const p = ovG.append('path').attr('class', 'move' + (ghost ? ' ghost' : '')).attr('d', line(xy, pts)).attr('stroke', color)
       .attr('marker-end', `url(#${marker(color)})`);
     if (animate && !reduce()) {
       const L = p.node().getTotalLength();
@@ -396,22 +484,29 @@ details[open] summary { margin-bottom: 6px; }
         .transition().delay(i * 250).duration(1300).ease(d3.easeCubicOut).attr('stroke-dashoffset', 0)
         .on('end', function () { d3.select(this).attr('stroke-dasharray', null); });
     }
-    if (label) {
-      const j = Math.floor((xy.length - 1) / 2), m = xy[j], n = xy[Math.min(xy.length - 1, j + 1)];
-      ovG.append('text').attr('class', 'move-lbl').attr('data-x', (m[0] + n[0]) / 2).attr('data-y', (m[1] + n[1]) / 2).attr('fill', color).text(label);
+    if (label || commander) {
+      // label the army where it sets out, so the end of the arrow stays clear for the battle it heads to
+      const t = ovG.append('text').attr('class', 'move-lbl').attr('data-x', xy[0][0]).attr('data-y', xy[0][1]).attr('fill', color);
+      if (commander) t.append('tspan').attr('class', 'cmd').text(commander);
+      if (label && label !== commander) t.append('tspan').text((commander ? ', ' : '') + label);
     }
   }
   function mark(b, color, past, kind) {
     const [x, y] = proj([b.lon, b.lat]);
     const g = ovG.append('g').attr('class', 'mark' + (past ? ' past' : '')).attr('data-x', x).attr('data-y', y)
       .on('mousemove', e => showTip(e, b.name + (b.year != null ? ' (' + fmtYear(b.year) + ')' : ''))).on('mouseleave', hideTip);
-    if (kind === 'battle') g.append('path').attr('class', 'dot').attr('d', d3.symbol(d3.symbolCross, past ? 70 : 150)()).attr('transform', 'rotate(45)').attr('fill', color);
-    else g.append('circle').attr('class', 'dot').attr('r', past ? 4 : 6).attr('fill', color);
+    const sym = { battle: d3.symbolCross, siege: d3.symbolSquare, treaty: d3.symbolDiamond, war: d3.symbolStar }[kind];
+    if (sym) g.append('path').attr('class', 'dot').attr('d', d3.symbol(sym, past ? 70 : 150)()).attr('transform', kind === 'battle' ? 'rotate(45)' : null).style('fill', color);
+    else g.append('circle').attr('class', 'dot').attr('r', past ? 4 : 6).style('fill', color);
     if (!past) g.append('text').attr('x', 10).attr('y', 4).attr('font-size', 13).text(b.name);
   }
   function scaleOverlay() {
     const k = S.k;
     ovG.selectAll('.move').attr('stroke-width', 3.2 / k);
+    ovG.selectAll('.front-halo').attr('stroke-width', 8 / k);
+    ovG.selectAll('.front').attr('stroke-width', 3.4 / k).attr('stroke-dasharray', `${9 / k} ${4 / k}`);
+    ovG.selectAll('.front-lbl').attr('font-size', 11 / k).attr('stroke-width', 3 / k)
+      .attr('x', function () { return +this.dataset.x + 8 / k; }).attr('y', function () { return +this.dataset.y + 14 / k; });
     ovG.selectAll('.move-lbl').attr('font-size', 12 / k).attr('stroke-width', 3 / k)
       .attr('x', function () { return +this.dataset.x + 6 / k; }).attr('y', function () { return +this.dataset.y - 6 / k; });
     ovG.selectAll('.mark').attr('transform', function () { return `translate(${this.dataset.x},${this.dataset.y}) scale(${1 / k})`; });
@@ -428,7 +523,8 @@ details[open] summary { margin-bottom: 6px; }
     showStep(0);
   }
   function stepBounds(st, pad) {
-    const pts = [...(st.battles || []), ...(st.sites || [])].map(b => [b.lon, b.lat]).concat((st.moves || []).flatMap(m => m.path));
+    const pts = [...(st.events || []), ...(st.sites || [])].map(b => [b.lon, b.lat])
+      .concat((st.moves || []).flatMap(m => m.path), (st.fronts || []).flatMap(f => f.path));
     if (!pts.length) return null;
     const lon = pts.map(p => p[0]), lat = pts.map(p => p[1]);
     const x0 = Math.min(...lon) - pad, x1 = Math.max(...lon) + pad, y0 = Math.max(-60, Math.min(...lat) - pad), y1 = Math.min(80, Math.max(...lat) + pad);
@@ -439,7 +535,7 @@ details[open] summary { margin-bottom: 6px; }
     const b = stepBounds(it.steps[n], S.detail.kind === 'war' ? 5 : 10);
     if (b) zoomToBounds(b, 10);
     renderTimeline(); renderPanel();
-    await showBorders(snaps[periodOf(it.steps[n].year)].file);
+    await showBorders(fileForYear(it.steps[n].year));
     if (S.detail && S.detail.item === it && S.step === n) drawOverlay(true);
   }
   function exitDetail() { const back = S.detail.back; S.detail = null; setPeriod(back); }
@@ -450,7 +546,7 @@ details[open] summary { margin-bottom: 6px; }
     renderTimeline(); renderPanel(); drawOverlay(false);
     await showBorders(snaps[i].file);
     if (S.idx !== i || S.detail) return;
-    if (S.selected && !S.features.some(f => f.properties.name === S.selected)) { S.selected = null; renderPanel(); }
+    if (S.selected && !S.features.some(f => f.properties.name === S.selected && (!simple() || f.major))) { S.selected = null; renderPanel(); }
     styleMap();
   }
 
@@ -479,12 +575,15 @@ details[open] summary { margin-bottom: 6px; }
     let head = '', html = '';
     if (d && d.kind === 'war') {
       const w = d.item, st = w.steps[S.step];
-      head = `<p class="kicker">${esc(w.name)} · ${fmtYear(w.start)} to ${fmtYear(w.end)}</p><p class="period">${esc(st.title)}</p><div class="meta">${esc(st.label)} · step ${S.step + 1} of ${w.steps.length}</div>`;
-      html += `<div class="legend">${w.sides.map(x => `<span><i class="swatch" style="background:${x.color}"></i>${esc(x.name)}</span>`).join('')}</div>`;
+      const sideName = i => w.sides[i] ? esc(w.sides[i].name) : '';
+      head = `<p class="kicker">${esc(w.name)} · ${fmtYear(w.start)} to ${fmtYear(w.end)}</p><p class="period">${esc(st.title)}</p><div class="meta">${esc(st.label)} · ${w.kind === 'conflict' ? 'chapter' : 'step'} ${S.step + 1} of ${w.steps.length}</div>`;
+      html += `<div class="sides">${w.sides.map(x => `<div class="sd"><i class="swatch" style="background:${x.color}"></i><b>${esc(x.name)}</b>${x.leaders?.length ? `<span class="ld">${x.leaders.map(esc).join(', ')}</span>` : ''}</div>`).join('')}</div>`;
       html += `<p class="syn">${esc(st.text)}</p>`;
-      if (st.battles.length) html += '<div class="sec"><h3>Major battles</h3><div class="list">' + st.battles.map(b =>
-        `<div class="battle" style="border-color:${w.sides[b.winner]?.color || 'var(--line)'}"><b>${esc(b.name)}</b> <span class="win">${fmtYear(b.year)}${b.winner != null && w.sides[b.winner] ? ' · ' + esc(w.sides[b.winner].name) + ' victory' : ''}</span><div>${esc(b.text)}</div></div>`).join('') + '</div></div>';
-      html += `<details${S.step === 0 ? ' open' : ''}><summary>About this war</summary><p class="syn" style="font-size:15px">${esc(w.summary)}</p></details>`;
+      if (st.moves?.length) html += '<div class="sec"><h3>On the move</h3><div class="list">' + st.moves.map(m =>
+        `<div class="mv"><i class="swatch" style="background:${w.sides[m.side]?.color || 'var(--line)'}"></i><span><b>${esc(m.commander || m.label)}</b>${m.label && m.commander && m.label !== m.commander ? ', ' + esc(m.label) : ''}</span></div>`).join('') + '</div></div>';
+      if (st.events?.length) html += '<div class="sec"><h3>Key moments</h3><div class="list">' + st.events.map(b =>
+        `<div class="battle" style="border-color:${w.sides[b.winner]?.color || 'var(--line)'}"><span class="ev-k">${esc(b.kind)}</span> <b>${esc(b.name)}</b> <span class="win">${fmtYear(b.year)}${b.winner != null && w.sides[b.winner] ? ' · ' + sideName(b.winner) + (b.kind === 'battle' || b.kind === 'siege' ? ' victory' : '') : ''}</span><div>${esc(b.text)}</div></div>`).join('') + '</div></div>';
+      html += `<details${S.step === 0 ? ' open' : ''}><summary>About this ${w.kind === 'conflict' ? 'conflict' : 'war'}</summary><p class="syn" style="font-size:15px">${esc(w.summary)}</p></details>`;
     } else if (d && d.kind === 'religion') {
       const r = d.item, st = r.steps[S.step];
       head = `<p class="kicker">${esc(r.name)} · founded ${esc(r.founded)}</p><p class="period">${esc(st.title)}</p><div class="meta">${esc(st.label)} · step ${S.step + 1} of ${r.steps.length}</div>`;
@@ -506,7 +605,8 @@ details[open] summary { margin-bottom: 6px; }
       } else if (S.mode === 'wars') {
         const act = activeWars();
         html += `<div class="sec"><h3>Wars in this period</h3>${act.length ? '<div class="list">' + act.map(warCard).join('') + '</div>' : '<p class="hint">None of the major wars on this map falls in this period. Pick one below or from the coloured bars on the timeline.</p>'}</div>`;
-        html += `<details${act.length ? '' : ' open'}><summary>All major wars</summary><div class="list">${wars.map(warCard).join('')}</div></details>`;
+        const byEra = ERAS.map(e => [e[0], wars.filter(w => eraOf(periodOf(w.start)) === e)]).filter(x => x[1].length);
+        html += `<details${act.length ? '' : ' open'}><summary>All ${wars.length} wars</summary><div class="list">${byEra.map(([n, ws]) => `<h4>${esc(n)}</h4>` + ws.map(warCard).join('')).join('')}</div></details>`;
       } else if (S.mode === 'religions') {
         const counts = {};
         S.features.forEach(x => { const fa = faithAt(x.properties.regions[0], S.idx); if (fa) counts[fa.id] = (counts[fa.id] || 0) + 1; });
@@ -519,7 +619,7 @@ details[open] summary { margin-bottom: 6px; }
         const others = rel.stories.filter(st => !shown.has(st.id));
         if (others.length) html += `<details><summary>Other faiths</summary><div class="list">${others.map(st => storyCard(st, 'Founded ' + st.founded)).join('')}</div></details>`;
       } else {
-        html += '<p class="hint">Click any state to zoom in and read what was going on there.</p>';
+        html += `<p class="hint">Click any state to zoom in and read what was going on there. ${detailed ? 'Showing every state and people.' : 'Showing the main civilizations; turn on Detailed borders to see every state.'}</p>`;
         if (s.world['Key Events']) html += `<div class="sec"><h3>World</h3>${events(s.world['Key Events'])}</div>`;
         if (s.world['Global Events']) html += `<div class="sec"><h3>Around the globe</h3>${events(s.world['Global Events'])}</div>`;
         if (s.world['European Events']) html += `<div class="sec"><h3>Europe</h3>${events(s.world['European Events'])}</div>`;
@@ -547,7 +647,12 @@ details[open] summary { margin-bottom: 6px; }
       head.innerHTML = `<button type="button" id="back">&#8249; Back to world timeline</button><span><b>${esc(it.name)}</b></span>`;
       $('back').onclick = exitDetail;
       bands.style.display = 'none'; lanes.innerHTML = ''; lanes.style.height = '0';
-      ticks.innerHTML = it.steps.map((st, i) => `<span class="${i === 0 || i === n - 1 ? '' : 'minor'}" style="left:${xcss(i, n - 1)}">${esc(st.label)}</span>`).join('');
+      // long step labels ("Dec 1941 to Jun 1942") collide, so show every k-th one that fits
+      const longest = Math.max(...it.steps.map(st => st.label.length)), room = $('track').clientWidth || 600;
+      const stride = Math.max(1, Math.ceil(n / Math.max(2, Math.floor(room / (longest * 6.6 + 14)))));
+      const shown = d3.range(0, n, stride);
+      if (shown.at(-1) !== n - 1) { if (n - 1 - shown.at(-1) < stride * .6 && shown.length > 1) shown.pop(); shown.push(n - 1); }
+      ticks.innerHTML = shown.map(i => `<span class="${i === 0 || i === n - 1 ? '' : 'minor'}" style="left:${xcss(i, n - 1)}">${esc(it.steps[i].label)}</span>`).join('');
       return;
     }
     slider.max = N - 1; slider.value = S.idx; slider.setAttribute('aria-label', 'Time period');
@@ -566,9 +671,9 @@ details[open] summary { margin-bottom: 6px; }
       wars.slice().sort((a, b) => a.start - b.start).forEach(w => {
         const l = posOf(w.start), r = Math.max(posOf(w.end), l + .25);
         let lane = laneEnd.findIndex(x => x < l - .05); if (lane < 0) { lane = laneEnd.length; laneEnd.push(r); } else laneEnd[lane] = r;
-        html += `<button type="button" class="warbar" data-war="${w.id}" title="${esc(w.name)} (${fmtYear(w.start)} to ${fmtYear(w.end)})" aria-label="${esc(w.name)}" style="background:${warColor(w)};top:${2 + lane * 11}px;left:${xcss(l, N - 1)};width:calc(${(r - l) / (N - 1)} * (100% - 16px))"></button>`;
+        html += `<button type="button" class="warbar" data-war="${w.id}" title="${esc(w.name)} (${fmtYear(w.start)} to ${fmtYear(w.end)})" aria-label="${esc(w.name)}" style="background:${warColor(w)};top:${2 + lane * 8}px;left:${xcss(l, N - 1)};width:calc(${(r - l) / (N - 1)} * (100% - 16px))"></button>`;
       });
-      lanes.innerHTML = html; lanes.style.height = (laneEnd.length * 11 + 4) + 'px';
+      lanes.innerHTML = html; lanes.style.height = (laneEnd.length * 8 + 4) + 'px';
     } else if (S.mode === 'religions') {
       lanes.innerHTML = rel.stories.map(st => `<button type="button" class="pin" data-story="${st.id}" title="${esc(st.name)}, founded ${esc(st.founded)}" aria-label="${esc(st.name)}" style="background:${st.color};left:${xcss(posOf(st.steps[0].year), N - 1)}"></button>`).join('');
       lanes.style.height = '18px';
@@ -591,6 +696,15 @@ details[open] summary { margin-bottom: 6px; }
   });
   const worldView = (dur = 750) => zoomToBounds(path.bounds({ type: 'Sphere' }), 40, dur);
   $('btnWorld').onclick = () => worldView();
+  const detailBtn = $('btnDetail');
+  detailBtn.setAttribute('aria-pressed', detailed);
+  detailBtn.onclick = () => {
+    detailed = !detailed; detailBtn.setAttribute('aria-pressed', detailed);
+    try { localStorage.setItem('wtt-detailed', detailed ? '1' : '0'); } catch (e) {}
+    const f = S.features.find(x => x.properties.name === S.selected);
+    if (f && simple() && !f.major) S.selected = null;
+    computeLabels(); drawLabels(); styleMap(); renderPanel();
+  };
   $('btnEurope').onclick = () => zoomToBounds(ptsBounds([[-11, 35], [42, 35], [-11, 66], [42, 66], [15, 71]]));
   svg.on('click', () => { if (S.selected && !S.detail) { S.selected = null; styleMap(); renderPanel(); } });
   $('panelHead').onclick = () => { if (isPhone()) $('panel').classList.toggle('collapsed'); };
