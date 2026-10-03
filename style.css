@@ -367,7 +367,7 @@ section { padding: 96px 0; }
 @media (max-width: 980px) {
   .tiles { grid-template-columns: repeat(2, 1fr); }
   .stats ul { grid-template-columns: repeat(3, 1fr); row-gap: 36px; }
-  .detail-body { grid-template-columns: 1fr; gap: 24px; }
+  .detail-body { grid-template-columns: minmax(0, 1fr); gap: 24px; }
   .aside { position: static; order: -1; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0 32px; }
 }
 @media (max-width: 760px) {

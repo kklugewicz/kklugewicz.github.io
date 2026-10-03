@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Manipulator Dynamics & Sliding-Mode Control · Kyle Klugewicz</title>
-  <meta name="description" content="Deriving robot-arm dynamics and comparing controllers on the same plant, ending with a robust sliding-mode design.">
+  <meta name="description" content="Modeling a two-link robot arm and designing six controllers in sequence, from PD-gravity to robust sliding-mode control, in MATLAB.">
   <link rel="icon" href="../assets/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,29 +19,135 @@
       <p class="crumbs"><a href="../index.html">Home</a><span>/</span><a href="../index.html#projects">Projects</a></p>
       <p class="eyebrow">Graduate Robotics · Nonlinear Control</p>
       <h1>Manipulator Dynamics & Sliding-Mode Control</h1>
-      <p class="subtitle">Deriving robot-arm dynamics and comparing controllers on the same plant, ending with a robust sliding-mode design.</p>
-      <ul class="facts"><li><strong>When</strong>Spring 2026</li><li><strong>Team</strong>3 engineers</li><li><strong>Course</strong>EE 5325 Robotics (graduate)</li><li><strong>Tools</strong>MATLAB · Simulink</li></ul>
+      <p class="subtitle">Modeling a two-link robot arm, then designing controllers that each fix the last one's weakness, ending with a sliding-mode design that tracks even with the wrong masses.</p>
+      <ul class="facts"><li><strong>When</strong>Spring 2026</li><li><strong>Team</strong>3 engineers</li><li><strong>Course</strong>EE 5325 Robotics (graduate)</li><li><strong>Tools</strong>MATLAB</li></ul>
     </div>
   </header>
 
   <section>
     <div class="row detail-body">
       <article class="prose">
-        
-        <h2>Overview</h2>
-<p class="lead">Across a sequence of problem sets we derived and simulated manipulator dynamics, then tested
-different control strategies against the same robot model to see where each one breaks.</p>
+        <ul class="metrics">
+          <li><span class="num">6</span><span class="lbl">Control strategies simulated on one two-link arm</span></li>
+          <li><span class="num">5 N·m</span><span class="lbl">Constant disturbance per joint, rejected to zero error</span></li>
+          <li><span class="num">±15 N·m</span><span class="lbl">Actuator limit handled with integrator anti-windup</span></li>
+          <li><span class="num">20%</span><span class="lbl">Mass error (0.8 vs 1 kg) tolerated by sliding-mode control</span></li>
+        </ul>
 
-<h2>What we did</h2>
-<ul>
-  <li>Derived the manipulator equations of motion and simulated them in MATLAB/Simulink.</li>
-  <li>Compared several controller formulations on the same plant. One demanded an unrealistic <strong>2000 N·m</strong> of torque, which motivated a more robust approach.</li>
-  <li>Implemented sliding-mode control: derived the sliding surface, virtual reference, and torque law, so tracking error converges despite model uncertainty.</li>
-  <li>Compared results across strategies and presented the findings.</li>
-</ul>
-<div class="callout">The header figure is illustrative. It shows trajectories from many initial states sliding onto a surface (orange) and converging to zero error, which is the core idea behind sliding-mode control.</div>
+        <h2>Overview</h2>
+        <p class="lead">This was the course project for graduate Robotics (EE 5325). We modeled a two-link planar elbow arm,
+        simulated it with no controller, then designed six closed-loop controllers in sequence. Each one was built to fix
+        the specific weakness the previous one exposed: bounded tracking error, a constant disturbance, unrealistic torque,
+        actuator saturation, and finally not knowing the arm's masses.</p>
+        <p>Every controller tracked the same reference, q<sub>d1</sub> = 0.1 sin(2πt) and q<sub>d2</sub> = 0.1 cos(2πt),
+        starting well away from it (both joints at π/3 rad), and was simulated for 10 s in MATLAB with ode23.</p>
+
+        <h2>Modeling the arm</h2>
+        <p>Both link masses are treated as point masses at the ends of the links (m<sub>1</sub> = m<sub>2</sub> = 1 kg,
+        a<sub>1</sub> = a<sub>2</sub> = 1 m, g = 9.8 m/s²). We derived the equations of motion from the Lagrangian
+        (kinetic minus potential energy), which gives the standard manipulator form:</p>
+        <p class="formula">M(q) q̈ + N(q, q̇) = τ</p>
+        <ul>
+          <li><strong>Inertia matrix M(q).</strong> M<sub>11</sub> = (m<sub>1</sub>+m<sub>2</sub>)a<sub>1</sub>² + m<sub>2</sub>a<sub>2</sub>² + 2m<sub>2</sub>a<sub>1</sub>a<sub>2</sub>cos θ<sub>2</sub>, M<sub>12</sub> = M<sub>21</sub> = m<sub>2</sub>a<sub>2</sub>² + m<sub>2</sub>a<sub>1</sub>a<sub>2</sub>cos θ<sub>2</sub>, M<sub>22</sub> = m<sub>2</sub>a<sub>2</sub>². It changes with the elbow angle, so the arm is harder to swing when it is stretched out.</li>
+          <li><strong>Nonlinear terms N(q, q̇).</strong> Coriolis and centrifugal coupling between the joints, plus gravity on each link.</li>
+          <li><strong>State-space form.</strong> With x = [θ<sub>1</sub> θ<sub>2</sub> θ̇<sub>1</sub> θ̇<sub>2</sub>]<sup>T</sup>, the simulation solves q̈ = M(q)<sup>−1</sup>(τ − N) at every step. The PID designs add the integral of the error as two more states.</li>
+        </ul>
+
+        <h2>Open loop: why feedback is needed</h2>
+        <p>Driving the joints with a fixed τ<sub>1</sub> = sin(2πt), τ<sub>2</sub> = cos(2πt) from rest for 20 s shows how
+        the arm behaves on its own. Gravity and the coupling between the links take over. The motion is erratic, and around
+        11 s the second link swings all the way over the top. Nothing in the input reacts to where the arm actually is.</p>
+        <div class="fig-row" style="--cols:2; --ratio:4/3">
+          <figure class="fig"><a class="zoom" href="../assets/img/robotics-openloop-angles.jpg"><img src="../assets/img/robotics-openloop-angles.jpg" alt="Open-loop joint angles over 20 seconds, with theta 2 jumping to about 8 radians near 11 seconds" loading="lazy"></a><figcaption>Joint angles under open-loop sinusoidal torque. θ<sub>2</sub> flips over the top near 11 s.</figcaption></figure>
+          <figure class="fig"><a class="zoom" href="../assets/img/robotics-openloop-3d.jpg"><img src="../assets/img/robotics-openloop-3d.jpg" alt="3D plot of end-effector x and y position over time, wandering loops" loading="lazy"></a><figcaption>End-effector path over time: no pattern to follow.</figcaption></figure>
+        </div>
+
+        <h2>The controller progression</h2>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>Controller</th><th>Problem it addresses</th><th>Control law · gains</th><th>Result</th></tr></thead>
+            <tbody>
+              <tr><td>PD-gravity</td><td>Track the reference</td><td>τ = K<sub>p</sub>e + K<sub>v</sub>ė + G(q)<br>K<sub>p</sub> = 2500, K<sub>v</sub> = 100</td><td><span class="pill partial">Bounded</span></td></tr>
+              <tr><td>PID-gravity</td><td>PD leaves a small offset</td><td>Adds K<sub>i</sub>∫e<br>K<sub>i</sub> = 1500</td><td><span class="pill partial">Mean ≈ 0</span></td></tr>
+              <tr><td>PID computed torque</td><td>5 N·m disturbance on each joint</td><td>τ = M(q)(q̈<sub>d</sub> + K<sub>v</sub>ė + K<sub>p</sub>e + K<sub>i</sub>ε) + N<br>K<sub>i</sub> = 500</td><td><span class="pill pass">Error → 0</span></td></tr>
+              <tr><td>Computed torque + anti-windup</td><td>Torque limited to ±15 N·m</td><td>ε̇ = e + K<sub>t</sub>(u − v)<br>K<sub>p</sub> = (60, 100), K<sub>v</sub> = (12, 20), K<sub>i</sub> = (5, 30), K<sub>t</sub> = (50, 20)</td><td><span class="pill partial">Offset</span></td></tr>
+              <tr><td>Robust sliding mode</td><td>Masses unknown (controller assumes 0.8 kg, true 1 kg)</td><td>τ = M̂q̈<sub>r</sub> + V̂<sub>m</sub>q̇<sub>r</sub> + Ĝ + K sgn(s)<br>Λ = 5, K = 12</td><td><span class="pill pass">Error → 0</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2>PD-gravity and PID-gravity</h2>
+        <p>PD-gravity control cancels gravity and uses stiff proportional and derivative gains to pull the arm onto the
+        reference. Within about half a second it was tracking the sinusoid, but the error never fully settled: it kept
+        oscillating with a small negative mean (−0.0117 rad on joint 1, −0.0039 rad on joint 2). Adding an integral term
+        shifted that mean to essentially zero (+0.0005 and +0.0006 rad), but the oscillating part of the error stayed,
+        because neither controller accounts for the arm's inertia or the coupling between the links.</p>
+        <div class="fig-row" style="--cols:2">
+          <figure class="fig"><a class="zoom" href="../assets/img/robotics-pd-error.jpg"><img src="../assets/img/robotics-pd-error.jpg" alt="PD-gravity tracking error, oscillating slightly below zero" loading="lazy"></a><figcaption>PD-gravity: error oscillates slightly below zero.</figcaption></figure>
+          <figure class="fig"><a class="zoom" href="../assets/img/robotics-pid-error.jpg"><img src="../assets/img/robotics-pid-error.jpg" alt="PID-gravity tracking error, oscillating around zero" loading="lazy"></a><figcaption>PID-gravity: the offset is gone, the ripple is not.</figcaption></figure>
+        </div>
+
+        <h2>PID computed torque: rejecting a disturbance</h2>
+        <p>Next we added a constant 5 N·m disturbance torque to each joint and asked for tracking error that actually
+        converges to zero. Computed-torque control uses the full dynamic model, M(q) and N(q, q̇), to cancel the arm's
+        nonlinear dynamics. What is left is a linear error equation that the PID gains can shape directly, and the integral
+        term absorbs the constant disturbance. Both errors went to zero and stayed there.</p>
+        <p>The catch showed up in the torque plot. Because the arm starts about a radian off the reference and the gains are
+        large, the controller asks for well over 10,000 N·m in the first instant. Even plain PD-gravity briefly requests
+        about 2,600 N·m. No real motor on a 1 kg arm can deliver that, which set up the next problem.</p>
+        <div class="fig-row" style="--cols:2; --ratio:4/3">
+          <figure class="fig"><a class="zoom" href="../assets/img/robotics-ct-error.jpg"><img src="../assets/img/robotics-ct-error.jpg" alt="Computed-torque tracking errors converging to zero within about 0.3 seconds" loading="lazy"></a><figcaption>Computed torque with a 5 N·m disturbance: both errors converge to zero.</figcaption></figure>
+          <figure class="fig"><a class="zoom" href="../assets/img/robotics-ct-torque.jpg"><img src="../assets/img/robotics-ct-torque.jpg" alt="Computed-torque control torques with an initial spike near minus 14,000 newton-meters" loading="lazy"></a><figcaption>…but the startup torque spike is physically unrealistic.</figcaption></figure>
+        </div>
+
+        <h2>Actuator limits and anti-windup</h2>
+        <p>We capped each joint at ±15 N·m and started the arm from rest at zero angle with initial joint speeds of 1 and
+        2 rad/s. Clipping the torque creates a new failure mode, <strong>integrator windup</strong>. While the actuator is
+        saturated, the error keeps accumulating in the integral term even though the motor can't act on it, and when the arm
+        finally comes out of saturation that stored error causes a large overshoot or instability. We used
+        back-calculation anti-windup: whenever the applied torque u differs from the requested torque v, the integrator is
+        pulled back in proportion to the difference, ε̇ = e + K<sub>t</sub>(u − v). We also retuned the gains much lower so
+        the controller asks for torques the actuators can supply.</p>
+        <p>The result stayed stable and bounded. Joint 2 tracks well, but joint 1 settles about 1.5 rad off the reference.
+        Joint 1 has to hold up both links against gravity, and 15 N·m simply isn't enough control authority to do that and
+        follow the trajectory at the same time. The torque plot shows joint 1 hitting the limit on every cycle. Widening
+        the limits (we also ran it at roughly ±60 N·m) brings tracking back, which confirms the remaining error comes from
+        the actuator, not the controller structure.</p>
+        <div class="fig-row" style="--cols:2; --ratio:4/3">
+          <figure class="fig"><a class="zoom" href="../assets/img/robotics-sat-error.jpg"><img src="../assets/img/robotics-sat-error.jpg" alt="Saturated computed-torque errors: joint 1 settles near 1.5 radians, joint 2 near zero" loading="lazy"></a><figcaption>With ±15 N·m limits, joint 1 can't fully reach the reference.</figcaption></figure>
+          <figure class="fig"><a class="zoom" href="../assets/img/robotics-sat-torque.jpg"><img src="../assets/img/robotics-sat-torque.jpg" alt="Control torques clipped at plus and minus 15 newton-meters" loading="lazy"></a><figcaption>Joint 1's torque rides the ±15 N·m limits every cycle.</figcaption></figure>
+        </div>
+
+        <h2>Robust sliding-mode control</h2>
+        <p>Computed torque only works if the model is right. For the last design, the controller was told both masses were
+        0.8 kg while the simulated arm used the true 1 kg, a 20% error. We designed a sliding-mode controller around three
+        pieces:</p>
+        <ul>
+          <li><strong>Sliding surface</strong>, s = ė + Λe. When s = 0, the error decays exponentially at a rate set by Λ, so the whole design reduces to driving s to zero.</li>
+          <li><strong>Virtual reference</strong>, q̇<sub>r</sub> = q̇<sub>d</sub> + Λe and q̈<sub>r</sub> = q̈<sub>d</sub> + Λė, which folds the error correction into the trajectory the model term follows.</li>
+          <li><strong>Torque law</strong>, shown below. The model-based terms use the estimated masses to do most of the work. The switching term K sgn(s) pushes back hard toward the surface to cover whatever the model gets wrong.</li>
+        </ul>
+        <p class="formula">τ = M̂(q)q̈<sub>r</sub> + V̂<sub>m</sub>(q, q̇)q̇<sub>r</sub> + Ĝ(q) + K sgn(s)</p>
+        <p>Despite the mass mismatch, both tracking errors converged to zero within about 2.5 s, and peak torque stayed
+        around 60 N·m instead of thousands. The trade-off is <strong>chattering</strong>: the sgn(s) term flips sign every
+        time s crosses zero, so the torque switches rapidly back and forth (the solid bands in the torque plot). On real
+        hardware that would wear the actuators, and the usual fix is to replace sgn(s) with a smooth saturation inside a
+        thin boundary layer.</p>
+        <div class="fig-row" style="--cols:3; --ratio:4/3">
+          <figure class="fig"><a class="zoom" href="../assets/img/robotics-smc-error.jpg"><img src="../assets/img/robotics-smc-error.jpg" alt="Sliding-mode tracking errors converging smoothly to zero by about 2.5 seconds" loading="lazy"></a><figcaption>Errors converge to zero despite 20% mass error.</figcaption></figure>
+          <figure class="fig"><a class="zoom" href="../assets/img/robotics-smc-torque.jpg"><img src="../assets/img/robotics-smc-torque.jpg" alt="Sliding-mode control torques with dense high-frequency switching between about minus 20 and 60 newton-meters" loading="lazy"></a><figcaption>Torque stays near 60 N·m peak, with visible chattering.</figcaption></figure>
+          <figure class="fig"><a class="zoom" href="../assets/img/robotics-smc-3d.jpg"><img src="../assets/img/robotics-smc-3d.jpg" alt="3D plot of end-effector position over time settling into a regular sinusoidal path" loading="lazy"></a><figcaption>End effector settles onto the reference path.</figcaption></figure>
+        </div>
+
+        <h2>What I learned</h2>
+        <p>Each controller solved one problem and exposed the next. Good-looking error plots can hide torque demands no motor
+        could meet, so the error and torque plots always have to be read together. Model-based control is powerful when the
+        model is right, and robust control is how you keep that performance when it isn't, at the cost of a rougher control
+        signal. Natural next steps are an adaptive controller that learns the unknown masses online, and a boundary-layer
+        version of the sliding-mode law to remove the chattering.</p>
+        <div class="callout">The header figure is illustrative. It shows trajectories from many initial states sliding onto a surface (orange) and converging to zero error, which is the core idea behind sliding-mode control.</div>
       </article>
-      <aside class="aside"><div class="aside-block"><h4>Tools</h4><ul class="chips light-chips"><li>MATLAB</li><li>Simulink</li><li>Nonlinear control</li><li>Lagrangian dynamics</li></ul></div><div class="aside-block"><h4>Team</h4><ul class="plain"><li>Eduardo Castellanos</li><li>Pablo Romero Rodriguez</li><li>Kyle Klugewicz</li></ul></div></aside>
+      <aside class="aside"><div class="aside-block"><h4>Tools</h4><ul class="chips light-chips"><li>MATLAB</li><li>ode23</li><li>Lagrangian dynamics</li><li>Computed-torque control</li><li>Sliding-mode control</li><li>Anti-windup</li></ul></div><div class="aside-block"><h4>Team</h4><ul class="plain"><li>Eduardo Castellanos</li><li>Pablo Romero Rodriguez</li><li>Kyle Klugewicz</li></ul></div></aside>
     </div>
   </section>
 
