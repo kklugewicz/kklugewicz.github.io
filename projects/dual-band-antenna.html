@@ -14,7 +14,7 @@
 <body data-root="../" data-page="dual-band-antenna">
   <div id="site-nav"></div>
 
-  <header class="page-hero" style="--hero-img:url(../assets/img/antenna-model.jpg)">
+  <header class="page-hero" style="--hero-img:url(../assets/img/antenna-built.jpg)">
     <div class="row">
       <p class="crumbs"><a href="../index.html">Home</a><span>/</span><a href="../index.html#projects">Projects</a></p>
       <p class="eyebrow">RF Design · Antennas</p>
@@ -27,38 +27,83 @@
   <section>
     <div class="row detail-body">
       <article class="prose">
-        <ul class="metrics"><li><span class="num">2.53 GHz</span><span class="lbl">Measured lower band · 2.0% error</span></li><li><span class="num">4.94 GHz</span><span class="lbl">Measured upper band · 0.8% error</span></li><li><span class="num">12 g</span><span class="lbl">Finished antenna mass</span></li><li><span class="num">60 mm</span><span class="lbl">Square FR4 board</span></li></ul>
-        <h2>Overview</h2>
-<p class="lead">A dual-band patch resonates at two frequencies from a single radiator. Here the outer patch sets the
-2.4 GHz band, and a U-shaped slot cut into it creates the 5 GHz band. That makes it cheap, light, and easy to
-fabricate.</p>
+        <figure class="fig"><a href="../assets/img/antenna-dimensions.jpg"><img src="../assets/img/antenna-dimensions.jpg" alt="The finished antenna on its FR4 board, annotated with measured dimensions" loading="lazy"></a><figcaption>The finished antenna with its measured dimensions: a 28.73 × 15.19 mm patch fed by a 1.50 mm microstrip line on a 60 mm square FR4 board.</figcaption></figure>
 
-<h2>Design</h2>
+        <ul class="metrics"><li><span class="num">2.53 GHz</span><span class="lbl">Measured lower band · 2.0% from simulation</span></li><li><span class="num">4.94 GHz</span><span class="lbl">Measured upper band · 0.8% from simulation</span></li><li><span class="num">12 g</span><span class="lbl">Finished antenna mass</span></li><li><span class="num">60 mm</span><span class="lbl">Square FR4 board</span></li></ul>
+        <h2>Overview</h2>
+<p class="lead">A dual-band patch resonates at two frequencies from a single radiator. Our goal was a microstrip patch
+for the 2.45 GHz and 5 GHz Wi-Fi bands: understand the theory, simulate it, then build it and measure it. The outer
+patch sets the lower band, and a small U-shaped slot cut into the patch adds the upper band.</p>
+<p>The result is cheap, light, and easy to fabricate. The milled board resonated at 2.53 GHz and 4.94 GHz, within 2%
+of the simulated design.</p>
+
+<h2>Theory</h2>
 <ul>
-  <li>Started from textbook rectangular-patch theory (half-wave resonator, effective permittivity, fringing correction) to size the patch for the lower band.</li>
-  <li>Modeled the antenna in HFSS with a 50 Ω lumped port, swept 1–6 GHz, and tuned the slot and feed, since the U-slot adds coupling the closed-form equations miss.</li>
-  <li>Checked S<sub>11</sub>, directivity, and surface-current distributions at both bands.</li>
+  <li>Started from the textbook rectangular patch, which behaves roughly as a half-wavelength resonator.</li>
+  <li>Sized the patch for the 2.4 GHz band with the standard closed-form equations: the patch width <em>W</em>, the effective permittivity ε<sub>reff</sub> (fields travel partly in FR4 and partly in air), the fringing-field extension Δ<em>L</em>, and the corrected patch length <em>L</em>.</li>
+  <li>Those equations only give a starting size. The slot and feed add coupling they don't capture, and the 5 GHz band comes mainly from simulation, so the final dimensions were tuned in HFSS.</li>
 </ul>
+
+<h2>Simulation</h2>
+<ul>
+  <li>Modeled the antenna in Ansys HFSS as a terminal network with a 50 Ω lumped port at the feed line, perfect-E boundaries for the patch, feed, and ground, and an FR4 substrate.</li>
+  <li>Swept 1–6 GHz and checked S<sub>11</sub>, directivity, and surface-current distribution at both bands.</li>
+  <li>The tuned model resonates at <strong>2.48 GHz and 4.98 GHz</strong>.</li>
+</ul>
+<div class="fig-row" style="--ratio:4/3">
+  <figure class="fig"><a href="../assets/img/antenna-hfss-3d.jpg"><img src="../assets/img/antenna-hfss-3d.jpg" alt="3D HFSS model of the patch, slot, and feed line on the FR4 board" loading="lazy" style="object-fit:contain;background:#fff"></a><figcaption>HFSS model: patch, U-slot, and microstrip feed on FR4</figcaption></figure>
+  <figure class="fig"><a href="../assets/img/antenna-hfss-top.jpg"><img src="../assets/img/antenna-hfss-top.jpg" alt="Top view of the HFSS model" loading="lazy" style="object-fit:contain;background:#fff"></a><figcaption>Top view of the model</figcaption></figure>
+</div>
+<figure class="fig"><a href="../assets/img/antenna-sim-s11.jpg"><img src="../assets/img/antenna-sim-s11.jpg" alt="Simulated S11 from 1 to 6 GHz with dips at 2.48 and 4.98 GHz" loading="lazy"></a><figcaption>Simulated S<sub>11</sub>: resonances at 2.48 GHz and 4.98 GHz</figcaption></figure>
+<div class="fig-row">
+  <figure class="fig"><a href="../assets/img/antenna-dir-2g4.jpg"><img src="../assets/img/antenna-dir-2g4.jpg" alt="Simulated directivity pattern at 2.4 GHz" loading="lazy"></a><figcaption>Simulated directivity at 2.4 GHz</figcaption></figure>
+  <figure class="fig"><a href="../assets/img/antenna-dir-5g.jpg"><img src="../assets/img/antenna-dir-5g.jpg" alt="Simulated directivity pattern at 5 GHz" loading="lazy"></a><figcaption>Simulated directivity at 5 GHz</figcaption></figure>
+</div>
+<div class="fig-row">
+  <figure class="video-fig" style="margin:0">
+    <video autoplay loop muted playsinline preload="metadata" poster="../assets/img/antenna-current-2g4-poster.jpg">
+      <source src="../assets/video/antenna-current-2g4.mp4" type="video/mp4">
+    </video>
+    <figcaption>Surface current at 2.4 GHz, swept through one cycle of phase</figcaption>
+  </figure>
+  <figure class="video-fig" style="margin:0">
+    <video autoplay loop muted playsinline preload="metadata" poster="../assets/img/antenna-current-5g-poster.jpg">
+      <source src="../assets/video/antenna-current-5g.mp4" type="video/mp4">
+    </video>
+    <figcaption>Surface current at 5 GHz</figcaption>
+  </figure>
+</div>
 
 <h2>Build &amp; test</h2>
 <ul>
-  <li>Milled the design as a copper microstrip on FR4 with an edge-mount coax connector.</li>
-  <li>Measured on a VNA, with resonances at <strong>2.53 GHz and 4.94 GHz</strong>. Cleaning the board and reseating the connector noticeably improved the measurements.</li>
+  <li>Milled the design as a copper microstrip on an FR4 substrate and soldered on an edge-mount SMA connector.</li>
+  <li>Measured S<sub>11</sub> on a Keysight N9923A VNA from 1.4 to 6 GHz. Cleaning the board and making a solid connector joint noticeably improved the measurements.</li>
+  <li>The antenna resonated at <strong>2.53 GHz and 4.94 GHz</strong>, 2.0% and 0.8% from the simulated resonances.</li>
 </ul>
+<figure class="fig"><a href="../assets/img/antenna-vna-s11.jpg"><img src="../assets/img/antenna-vna-s11.jpg" alt="VNA S11 trace with markers at 2.53 and 4.94 GHz" loading="lazy"></a><figcaption>Measured S<sub>11</sub> on the VNA, with markers at 2.53 GHz and 4.94 GHz</figcaption></figure>
+<div class="table-wrap">
+  <table class="data-table">
+    <thead><tr><th>Band</th><th>Simulated</th><th>Measured</th><th>Difference</th></tr></thead>
+    <tbody>
+      <tr><td>Lower</td><td>2.48 GHz</td><td>2.53 GHz</td><td>2.0%</td></tr>
+      <tr><td>Upper</td><td>4.98 GHz</td><td>4.94 GHz</td><td>0.8%</td></tr>
+    </tbody>
+  </table>
+</div>
 
 <h2>What I learned</h2>
-<p>The patch dimensions control the primary band and the slot controls the secondary one, so the narrow bandwidth
-leaves very tight tolerances. Next steps would be a PIN diode across the slot bridge to switch the upper band on and
-off, and arraying the element for beamforming.</p>
+<p>The patch dimensions control the primary band and the slot controls the secondary one, so each band can be tuned
+mostly on its own. The narrow bandwidth means the physical tolerances are tight. Next steps would be a PIN diode across
+the slot bridge to switch the upper band on and off, and arraying the element for higher gain, beamforming, and MIMO.</p>
       </article>
-      <aside class="aside"><div class="aside-block"><h4>Tools</h4><ul class="chips light-chips"><li>Ansys HFSS</li><li>VNA</li><li>PCB milling</li><li>FR4</li></ul></div><div class="aside-block"><h4>Team</h4><ul class="plain"><li>Julio Germosen</li><li>Kyle Klugewicz</li><li>Derek Munoz</li></ul></div></aside>
+      <aside class="aside"><div class="aside-block"><h4>Tools</h4><ul class="chips light-chips"><li>Ansys HFSS</li><li>VNA</li><li>PCB milling</li><li>FR4</li><li>Keysight N9923A</li></ul></div><div class="aside-block"><h4>Team</h4><ul class="plain"><li>Julio Germosen</li><li>Kyle Klugewicz</li><li>Derek Munoz</li></ul></div></aside>
     </div>
   </section>
 
   <section class="gray">
     <div class="row">
       <div class="intro" style="margin-bottom:36px"><p class="eyebrow">Gallery</p><h2>From the bench.</h2></div>
-      <div class="gallery"><figure><a href="../assets/img/antenna-model.jpg"><img src="../assets/img/antenna-model.jpg" alt="HFSS model: U-slot patch on FR4" loading="lazy"></a><figcaption>HFSS model: U-slot patch on FR4</figcaption></figure><figure><a href="../assets/img/antenna-s11.jpg"><img src="../assets/img/antenna-s11.jpg" alt="Simulated S11 with resonances near 2.45 and 5 GHz" loading="lazy"></a><figcaption>Simulated S11 with resonances near 2.45 and 5 GHz</figcaption></figure><figure><a href="../assets/img/antenna-gain.jpg"><img src="../assets/img/antenna-gain.jpg" alt="Simulated 3D gain pattern at 5 GHz" loading="lazy"></a><figcaption>Simulated 3D gain pattern at 5 GHz</figcaption></figure></div>
+      <div class="gallery"><figure><a href="../assets/img/antenna-built.jpg"><img src="../assets/img/antenna-built.jpg" alt="The finished dual-band patch antenna with its SMA connector" loading="lazy"></a><figcaption>The finished antenna</figcaption></figure><figure><a href="../assets/img/antenna-in-hand.jpg"><img src="../assets/img/antenna-in-hand.jpg" alt="The milled board held in hand before the connector was attached" loading="lazy"></a><figcaption>Fresh off the mill, before the connector went on</figcaption></figure><figure><a href="../assets/img/antenna-hfss-3d.jpg"><img src="../assets/img/antenna-hfss-3d.jpg" alt="HFSS model of the antenna" loading="lazy"></a><figcaption>The HFSS model it was built from</figcaption></figure></div>
     </div>
   </section>
   <div id="pager"></div>
