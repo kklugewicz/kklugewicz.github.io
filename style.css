@@ -208,6 +208,7 @@ section { padding: 96px 0; }
 .tl h4 { font-size: 20px; margin-top: 2px; }
 .tl .role { font-family: var(--serif); font-style: italic; color: var(--text); margin-bottom: 6px; }
 .tl .readmore { font-size: 13px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+.tl .chips li { padding: 4px 12px; }
 
 /* ---------- Stats band ---------- */
 .stats { background: var(--teal); color: var(--white); padding: 64px 0; }
