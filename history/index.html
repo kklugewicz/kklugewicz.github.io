@@ -66,6 +66,25 @@ body { background: var(--ocean); color: var(--ink); font-family: var(--f-body); 
 .pol:hover { fill-opacity: .8; }
 .pol.muted { fill: var(--pol-muted) !important; }
 .pol.faith { fill-opacity: var(--faith-op); }
+.pol.faith.other { fill-opacity: .16; }
+.leader { cursor: pointer; }
+.leader .ring { fill: var(--paper); stroke: var(--ink); stroke-width: 1.5; }
+.leader .ini { font-family: var(--f-body); font-weight: 700; font-size: 10px; fill: var(--ink); text-anchor: middle; dominant-baseline: central; }
+.leader:hover .ring { stroke: var(--accent); stroke-width: 2.5; }
+.ruler { display: grid; grid-template-columns: 64px 1fr; gap: 12px; align-items: center; }
+.ruler .ph { width: 64px; height: 64px; border-radius: 50%; overflow: hidden; background: var(--line); display: grid; place-items: center; font-weight: 700; color: var(--ink-soft); }
+.ruler .ph img { width: 100%; height: 100%; object-fit: cover; }
+.ruler b { display: block; font-size: 16px; }
+.ruler .s { color: var(--ink-soft); font-size: 13px; }
+.hist { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 2px; }
+.hist button { all: unset; box-sizing: border-box; display: grid; grid-template-columns: 12px 1fr; gap: 2px 8px; width: 100%; padding: 6px 8px; border-radius: 6px; cursor: pointer; font-size: 14px; line-height: 1.35; }
+.hist button:hover { background: color-mix(in srgb, var(--ink) 6%, transparent); }
+.hist button:focus-visible { outline: 2px solid var(--accent); }
+.hist .now { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+.hist .swatch { width: 12px; height: 12px; margin-top: 3px; }
+.hist .when { font-family: var(--f-mono); font-size: 11.5px; color: var(--ink-soft); }
+.hist .note { grid-column: 2; color: var(--ink-soft); font-size: 13.5px; }
+.fam h4 { margin: 4px 0 2px; font-size: 11.5px; letter-spacing: .09em; text-transform: uppercase; color: var(--ink-soft); }
 .pol.sel { stroke: var(--sel); stroke-width: 2.2; }
 .pols { transition: opacity .25s ease; }
 .pols.fading { opacity: .3; }
@@ -176,6 +195,7 @@ details[open] summary { margin-bottom: 6px; }
 </style>
 </head>
 <body>
+
 <div class="app">
   <div class="stage">
     <svg id="map" role="img" aria-label="World map for the selected period"></svg>
@@ -226,14 +246,16 @@ details[open] summary { margin-bottom: 6px; }
   const landG = root.append('path').attr('class', 'land');
   const polG = root.append('g').attr('class', 'pols');
   const lblG = root.append('g');
+  const leadG = root.append('g');
   const ovG = root.append('g');
   const tip = $('tip');
 
   const get = f => fetch('data/' + f).then(r => r.json());
-  const [timeline, land, synopses, wars, rel] = await Promise.all(
-    ['timeline.json', 'land.json', 'synopses.json', 'wars.json', 'religions.json'].map(get));
+  const [timeline, land, synopses, wars, rel, rulers] = await Promise.all(
+    ['timeline.json', 'land.json', 'synopses.json', 'wars.json', 'religions.json', 'rulers.json'].map(get));
   const snaps = timeline.snapshots, N = snaps.length;
-  const faithById = Object.fromEntries(rel.faiths.map(f => [f.id, f]));
+  const faithById = Object.fromEntries(rel.denominations.map(f => [f.id, f]));
+  const zoneById = Object.fromEntries(rel.zones.map(z => [z.id, z]));
   const storyById = Object.fromEntries(rel.stories.map(s => [s.id, s]));
   const cache = {};
   // A ring wound the wrong way covers the whole globe in D3's spherical geometry; flip any such polygon.
@@ -300,10 +322,67 @@ details[open] summary { margin-bottom: 6px; }
   const hashHue = name => { if (name in FIXED) return FIXED[name]; let h = 0; for (const c of name) h = (h * 31 + c.charCodeAt(0)) >>> 0; return HUES[h % HUES.length]; };
   const polFill = n => `hsl(${hashHue(n)} var(--pol-s) var(--pol-l))`;
   const warColor = w => `hsl(${hashHue(w.id + 'x')} 55% 48%)`;
-  function faithAt(region, i) {
-    const pts = rel.regionReligion[region]; if (!pts) return null;
-    let f = null; for (const [k, id] of pts) if (k <= i) f = id; return faithById[f] || null;
+  // Each state takes the religion of its place ("zone"): the zone anchor inside it nearest its centre, else the nearest anchor.
+  const yearOf = i => Math.round((snaps[i].span[0] + snaps[i].span[1]) / 2);
+  function zoneOf(f) {
+    if (f.zone !== undefined) return f.zone;
+    let big = null, ba = -1;
+    for (const poly of f.geometry.coordinates) { const g = { type: 'Polygon', coordinates: poly }; const a = d3.geoArea(g); if (a > ba) { ba = a; big = g; } }
+    const c = d3.geoCentroid(big);
+    const near = rel.zones.map(z => [z, d3.geoDistance(c, [z.lon, z.lat])]).sort((a, b) => a[1] - b[1]);
+    const inside = near.slice(0, 8).find(([z]) => d3.geoContains(f, [z.lon, z.lat]));
+    return (f.zone = (inside || near[0])[0]);
   }
+  // a big state spans many faith zones, so sample it on a 1-degree grid and let each
+  // point vote for its nearest zone, weighted by area; small states use zoneOf
+  const nearestZone = new Map();
+  function zoneNear(lon, lat) {
+    const key = Math.floor(lat + 90) * 360 + Math.floor(lon + 180);
+    let z = nearestZone.get(key);
+    if (z) return z;
+    const k = Math.cos(lat * Math.PI / 180); let best = Infinity;
+    for (const zz of rel.zones) {
+      let dx = Math.abs(zz.lon - lon); if (dx > 180) dx = 360 - dx;
+      const dy = zz.lat - lat, d = dx * dx * k * k + dy * dy;
+      if (d < best) { best = d; z = zz; }
+    }
+    nearestZone.set(key, z); return z;
+  }
+  function inRing(x, y, r) {
+    let c = false;
+    for (let i = 0, j = r.length - 1; i < r.length; j = i++) {
+      const [xi, yi] = r[i], [xj, yj] = r[j];
+      if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) c = !c;
+    }
+    return c;
+  }
+  function zoneWeights(f) {
+    if (f.zw) return f.zw;
+    const w = new Map(); let n = 0;
+    for (const poly of f.geometry.coordinates) {
+      let x0 = 180, x1 = -180, y0 = 90, y1 = -90;
+      for (const [x, y] of poly[0]) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+      for (let lat = Math.ceil(y0 - .5) + .5; lat < y1; lat++) for (let lon = Math.ceil(x0 - .5) + .5; lon < x1; lon++) {
+        let inside = false;
+        for (const r of poly) if (inRing(lon, lat, r)) inside = !inside;
+        if (!inside) continue;
+        const z = zoneNear(lon, lat);
+        w.set(z, (w.get(z) || 0) + Math.cos(lat * Math.PI / 180) * (z.w || 1)); n++;
+      }
+    }
+    return (f.zw = n >= 3 ? [...w] : [[zoneOf(f), 1]]);
+  }
+  const entryAt = (z, y) => { let e = z.history[0]; for (const h of z.history) if (h.from <= y) e = h; return e; };
+  const zoneFaith = (z, i) => faithById[entryAt(z, yearOf(i)).faith] || null;
+  function faithAt(f, i) {
+    const zw = zoneWeights(f);
+    if (zw.length === 1) return zoneFaith(zw[0][0], i);
+    const by = new Map(); let top = null, tw = 0;
+    // thinly spread hunter and herder peoples rarely outnumbered the farmers and towns they shared a state with
+    for (const [z, v] of zw) { const fa = zoneFaith(z, i); if (!fa) continue; const t = (by.get(fa) || 0) + v * (fa.id === 'folk' ? .35 : 1); by.set(fa, t); if (t > tw) { tw = t; top = fa; } }
+    return top;
+  }
+  const storyOf = fa => fa && fa.story && storyById[fa.story];
 
   // ---------- state ----------
   let detailed = false;
@@ -362,7 +441,62 @@ details[open] summary { margin-bottom: 6px; }
       .attr('class', 'lbl').attr('x', d => d.x).attr('y', d => d.y)
       .attr('font-size', d => Math.min(fs * 1.25, fs * Math.max(.85, Math.sqrt(d.a * k * k) / 140)))
       .attr('stroke-width', 3 / k).text(d => d.name);
+    drawLeaders();
   }
+
+  // ---------- leaders ----------
+  // A towering ruler of the period gets a portrait beside their state's name. Portraits come from Wikipedia at view time;
+  // if they can't load, the circle shows initials.
+  const portraits = (() => { try { return JSON.parse(localStorage.getItem('wtt-portraits') || '{}'); } catch (e) { return {}; } })();
+  const asked = new Set();
+  function fetchPortraits(list) {
+    const want = list.map(x => x.r.wiki).filter(t => !(t in portraits) && !asked.has(t));
+    if (!want.length) return;
+    want.forEach(t => asked.add(t));
+    const u = 'https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&prop=pageimages&piprop=thumbnail&pithumbsize=120&redirects=1&titles=' + encodeURIComponent(want.join('|'));
+    fetch(u).then(r => r.json()).then(j => {
+      const q = j.query || {}, back = {};
+      for (const n of q.normalized || []) back[n.to] = n.from;
+      for (const n of q.redirects || []) back[n.to] = back[n.from] || n.from;
+      for (const pg of Object.values(q.pages || {})) if (pg.thumbnail) portraits[back[pg.title] || pg.title] = pg.thumbnail.source;
+      try { localStorage.setItem('wtt-portraits', JSON.stringify(portraits)); } catch (e) {}
+      drawLeaders(); if (S.selected) renderPanel();
+    }).catch(() => {});
+  }
+  function leadersNow() {
+    if (S.mode !== 'map' || S.detail) return [];
+    const [a, b] = snaps[S.idx].span, best = new Map();
+    for (const r of rulers) {
+      const ov = Math.min(b, r.to) - Math.max(a, r.from) + 1;
+      if (ov <= 0 || ov < Math.min(10, (r.to - r.from + 1) / 2)) continue;
+      let f = null;
+      for (const p of r.polities) { f = S.features.filter(x => x.properties.name === p).sort((x, y) => y.area - x.area)[0]; if (f) break; }
+      if (f && !(best.get(f)?.ov >= ov)) best.set(f, { r, f, ov });
+    }
+    return [...best.values()];
+  }
+  const leaderOf = f => leadersNow().find(x => x.f === f);
+  function drawLeaders() {
+    const list = leadersNow(), k = S.k;
+    fetchPortraits(list);
+    for (const x of list) if (x.xy === undefined) {
+      const l = labels.find(l => l.name === (simple() ? x.f.group : x.f.properties.name));
+      let big = null, ba = -1;
+      for (const poly of x.f.geometry.coordinates) { const g = { type: 'Polygon', coordinates: poly }; const a = path.area(g); if (a > ba) { ba = a; big = g; } }
+      x.xy = l ? [l.x, l.y] : path.centroid(big); x.w = l ? l.name.length * 3.4 : 0;
+    }
+    leadG.selectAll('g.leader').data(list, d => d.r.name).join(enter => {
+      const g = enter.append('g').attr('class', 'leader')
+        .on('click', (e, d) => { e.stopPropagation(); onPolity(d.f); })
+        .on('mousemove', (e, d) => showTip(e, `${d.r.name}, ${d.r.role} (${fmtYear(d.r.from)} to ${fmtYear(d.r.to)})`)).on('mouseleave', hideTip);
+      g.append('circle').attr('class', 'ring').attr('r', 15);
+      g.append('text').attr('class', 'ini').text(d => d.r.name.split(/\s+/).filter(w => /^[A-Z]/.test(w)).slice(0, 2).map(w => w[0]).join(''));
+      g.append('image').attr('x', -14).attr('y', -14).attr('width', 28).attr('height', 28).attr('clip-path', 'url(#portraitClip)').attr('preserveAspectRatio', 'xMidYMin slice');
+      return g;
+    }).attr('transform', d => `translate(${d.xy[0] - (d.w + 20) / k},${d.xy[1]}) scale(${1 / k})`)
+      .each(function (d) { const src = portraits[d.r.wiki]; d3.select(this).select('image').attr('href', src || null).style('display', src ? null : 'none'); });
+  }
+  defs.append('clipPath').attr('id', 'portraitClip').append('circle').attr('r', 14);
 
   // ---------- polities ----------
   async function showBorders(file) {
@@ -381,18 +515,22 @@ details[open] summary { margin-bottom: 6px; }
     const d = S.detail, side = sideMap() || new Map(), sm = simple();
     polG.selectAll('path').each(function (f) {
       const p = f.properties, el = d3.select(this);
-      let fill = polFill(sm ? f.group : p.name), muted = false, faith = false, war = false;
+      let fill = polFill(sm ? f.group : p.name), muted = false, faith = false, war = false, other = false;
       if (d && d.kind === 'war') {
         const sd = side.get(p.name);
         if (sd != null && d.item.sides[sd]) { fill = d.item.sides[sd].color; war = true; } else muted = true;
       } else if (d && d.kind === 'religion') {
         if (d.item.steps[S.step].regions.includes(p.regions[0])) { fill = d.item.color; faith = true; } else muted = true;
       } else if (S.mode === 'wars') muted = true;
-      else if (S.mode === 'religions') { const fa = faithAt(p.regions[0], S.idx); if (fa) { fill = fa.color; faith = true; } else muted = true; }
+      else if (S.mode === 'religions') {
+        const fa = faithAt(f, S.idx);
+        if (fa) { fill = fa.color; faith = true; other = !!S.faithSel && fa.id !== S.faithSel; } else muted = true;
+      }
       // inside a merged group, paint the shared edges in the group colour so the empire reads as one shape
       const merged = sm && f.major && !d && S.mode === 'map' && f.group !== p.name;
       el.style('fill', fill).style('stroke', merged && p.name !== S.selected ? fill : null).classed('minor', sm && !f.major)
-        .classed('muted', muted).classed('faith', faith).classed('side', war).classed('sel', p.name === S.selected);
+        .classed('muted', muted).classed('faith', faith).classed('other', other).classed('side', war)
+        .classed('sel', p.name === S.selected);
     });
     polG.selectAll('path.sel').raise();
   }
@@ -404,6 +542,7 @@ details[open] summary { margin-bottom: 6px; }
     return m;
   }
   function polTip(p, f) {
+    if (S.mode === 'religions' && !S.detail) { const fa = faithAt(f, S.idx); return p.name + (fa ? ': ' + fa.name : ''); }
     if (simple() && f.group !== p.name) return p.name + ' (' + f.group + ')';
     const side = sideMap(), sd = side && side.get(p.name);
     return sd != null && S.detail.item.sides[sd] ? p.name + ' (' + S.detail.item.sides[sd].name + ')' : p.name;
@@ -418,6 +557,12 @@ details[open] summary { margin-bottom: 6px; }
 
   function onPolity(f) {
     if (S.detail) return;
+    if (S.mode === 'religions') {
+      const fa = faithAt(f, S.idx);
+      S.faithSel = fa ? fa.id : null; S.selected = null;
+      styleMap(); renderPanel(); $('panel').classList.remove('collapsed');
+      return;
+    }
     S.selected = f.properties.name; styleMap();
     zoomToBounds(path.bounds(f));
     renderPanel();
@@ -552,6 +697,7 @@ details[open] summary { margin-bottom: 6px; }
     if (S.idx !== i || S.detail) return;
     if (S.selected && !S.features.some(f => f.properties.name === S.selected && (!simple() || f.major))) { S.selected = null; renderPanel(); }
     styleMap();
+    if (S.mode === 'religions') renderPanel();  // its faith list depends on the states just loaded
   }
 
   // ---------- panel ----------
@@ -599,29 +745,41 @@ details[open] summary { margin-bottom: 6px; }
       head = `<p class="kicker">${esc(era[0])}</p><p class="period">${esc(s.label)}</p><div class="meta">${esc(s.century)} · borders ${esc(s.borders)}</div>`;
       const f = S.features.find(x => x.properties.name === S.selected);
       if (f) {
-        const p = f.properties, fa = faithAt(p.regions[0], S.idx);
+        const p = f.properties, fa = faithAt(f, S.idx);
         const sw = S.mode === 'religions' && fa ? fa.color : polFill(p.name);
+        const ld = leaderOf(f);
+        if (ld) html += `<div class="ruler"><div class="ph">${portraits[ld.r.wiki] ? `<img src="${esc(portraits[ld.r.wiki])}" alt="">` : esc(ld.r.name[0])}</div><div><b>${esc(ld.r.name)}</b><span class="s">${esc(ld.r.role)}, ${fmtYear(ld.r.from)} to ${fmtYear(ld.r.to)}</span><p class="syn" style="font-size:14.5px;margin-top:4px">${esc(ld.r.why)}</p></div></div>`;
         html += `<div class="focus"><h2><span class="swatch" style="background:${sw}"></span>${esc(p.name)}</h2>` +
           (p.sub ? `<div class="sub">Part of ${esc(p.sub)}</div>` : '') + (fa ? `<div class="sub">Main faith: ${esc(fa.name)}</div>` : '') + '</div>';
         html += regionBlock(p.regions[0], true);
         p.regions.slice(1).forEach(r => html += regionBlock(r, false));
-        if (fa && fa.story && storyById[fa.story]) html += storyCard(storyById[fa.story], 'Follow how this faith spread');
+        if (storyOf(fa)) html += storyCard(storyOf(fa), 'Follow how this faith spread');
       } else if (S.mode === 'wars') {
         const act = activeWars();
         html += `<div class="sec"><h3>Wars in this period</h3>${act.length ? '<div class="list">' + act.map(warCard).join('') + '</div>' : '<p class="hint">None of the major wars on this map falls in this period. Pick one below or from the coloured bars on the timeline.</p>'}</div>`;
         const byEra = ERAS.map(e => [e[0], wars.filter(w => eraOf(periodOf(w.start)) === e)]).filter(x => x[1].length);
         html += `<details${act.length ? '' : ' open'}><summary>All ${wars.length} wars</summary><div class="list">${byEra.map(([n, ws]) => `<h4>${esc(n)}</h4>` + ws.map(warCard).join('')).join('')}</div></details>`;
       } else if (S.mode === 'religions') {
-        const counts = {};
-        S.features.forEach(x => { const fa = faithAt(x.properties.regions[0], S.idx); if (fa) counts[fa.id] = (counts[fa.id] || 0) + 1; });
-        const ids = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
-        html += '<p class="hint">Each state is shaded by the main faith of its region. Pick a faith to follow how it spread.</p><div class="list">' +
-          ids.map(id => { const fa = faithById[id]; return fa.story && storyById[fa.story]
-            ? `<button type="button" class="card" data-story="${fa.story}"><i class="swatch" style="background:${fa.color}"></i><span><b>${esc(fa.name)}</b><span class="s">Follow its spread</span></span></button>`
-            : `<div class="card" style="border:1px solid var(--line);border-radius:6px"><i class="swatch" style="background:${fa.color}"></i><span><b>${esc(fa.name)}</b></span></div>`; }).join('') + '</div>';
-        const shown = new Set(ids.map(id => faithById[id].story));
-        const others = rel.stories.filter(st => !shown.has(st.id));
-        if (others.length) html += `<details><summary>Other faiths</summary><div class="list">${others.map(st => storyCard(st, 'Founded ' + st.founded)).join('')}</div></details>`;
+        const fa = S.faithSel && faithById[S.faithSel];
+        if (fa) {
+          head = `<p class="kicker">${esc(fa.family)} · ${esc(s.label)}</p><p class="period">${esc(fa.name)}</p><div class="meta">${fa.start != null ? 'since c. ' + fmtYear(fa.start) : 'since prehistory'}</div>`;
+          html += `<p class="syn">${esc(fa.text)}</p>`;
+          // the biggest states shown on the map that follow it now
+          const where = [...new Set(S.features.filter(x => (!simple() || x.major) && faithAt(x, S.idx) === fa)
+            .sort((x, y) => y.area - x.area).map(x => simple() ? x.group : x.properties.name))];
+          html += `<div class="sec"><h3>Main faith in ${esc(s.label)}</h3><p class="hint">${where.length ? esc(where.slice(0, 12).join(', ')) + (where.length > 12 ? `, and ${where.length - 12} more` : '') : 'Not the main faith of any state shown in this period.'}</p></div>`;
+          html += histBlock(fa);
+          if (storyOf(fa)) html += storyCard(storyOf(fa), 'Follow how this faith spread');
+          html += '<p class="hint">Click the sea to see all faiths again.</p>';
+        } else {
+          html += '<p class="hint">Each state is shaded by its main religion. Click one to select that faith, see everywhere it was the main faith, and read its history.</p>';
+          const counts = {};
+          S.features.forEach(x => { if (!simple() || x.major) { const f2 = faithAt(x, S.idx); if (f2) counts[f2.id] = (counts[f2.id] || 0) + 1; } });
+          const fams = d3.groups(Object.keys(counts).sort((a, b) => counts[b] - counts[a]).map(id => faithById[id]), x => x.family);
+          html += '<div class="list fam">' + fams.map(([fam, list]) => `<h4>${esc(fam)}</h4>` + list.map(x =>
+            `<button type="button" class="card" data-faith="${x.id}"><i class="swatch" style="background:${x.color}"></i><span><b>${esc(x.name)}</b></span></button>`).join('')).join('') + '</div>';
+          html += `<details><summary>Follow a faith's spread</summary><div class="list">${rel.stories.map(st => storyCard(st, 'Founded ' + st.founded)).join('')}</div></details>`;
+        }
       } else {
         html += `<p class="hint">Click any state to zoom in and read what was going on there. ${detailed ? 'Showing every state and people.' : 'Showing the main civilizations; turn on Detailed borders to see every state.'}</p>`;
         if (s.world['Key Events']) html += `<div class="sec"><h3>World</h3>${events(s.world['Key Events'])}</div>`;
@@ -632,7 +790,22 @@ details[open] summary { margin-bottom: 6px; }
     $('panelHead').innerHTML = head;
     $('panelBody').innerHTML = html + credit;
   }
+  // the denomination's own history; the row for the shown period is highlighted and each row moves the map to its year
+  function histBlock(fa) {
+    const y = yearOf(S.idx), h = fa.history || [];
+    let now = -1; h.forEach((e, i) => { if (e.year <= y) now = i; });
+    return `<div class="sec"><h3>History of ${esc(fa.name)}</h3><ul class="hist">` + h.map((e, i) =>
+      `<li><button type="button" class="${i === now ? 'now' : ''}" data-hist="${i}"><i class="swatch" style="background:${fa.color}"></i><span><b>${esc(e.title)}</b> <span class="when">${fmtYear(e.year)}</span></span><span class="note">${esc(e.text)}</span></button></li>`).join('') + '</ul></div>';
+  }
+  function jumpToEntry(i) {
+    const fa = faithById[S.faithSel], e = fa && fa.history[i];
+    if (e) setPeriod(periodOf(e.year));
+  }
   function onPick(e) {
+    const f = e.target.closest('[data-faith]');
+    if (f) { S.faithSel = f.dataset.faith; styleMap(); renderPanel(); return; }
+    const h = e.target.closest('[data-hist]');
+    if (h) { jumpToEntry(+h.dataset.hist); return; }
     const b = e.target.closest('[data-war],[data-story]'); if (!b) return;
     if (b.dataset.war) enterWar(wars.find(w => w.id === b.dataset.war)); else enterReligion(storyById[b.dataset.story]);
     $('panel').classList.remove('collapsed');
@@ -693,7 +866,7 @@ details[open] summary { margin-bottom: 6px; }
 
   // ---------- controls ----------
   document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => {
-    S.mode = b.dataset.mode;
+    S.mode = b.dataset.mode; S.faithSel = null;
     document.querySelectorAll('.tabs button').forEach(x => x.setAttribute('aria-selected', x === b));
     if (S.detail) { S.detail = null; setPeriod(S.idx); return; }
     styleMap(); drawOverlay(false); renderTimeline(); renderPanel(); drawLabels();
@@ -718,7 +891,10 @@ details[open] summary { margin-bottom: 6px; }
     if (f && simple() && !f.major) S.selected = null;
     computeLabels(); drawLabels(); styleMap(); renderPanel();
   };
-  svg.on('click', () => { if (S.selected && !S.detail) { S.selected = null; styleMap(); renderPanel(); } });
+  svg.on('click', () => {
+    if (S.detail || !(S.selected || S.faithSel)) return;
+    S.selected = S.faithSel = null; styleMap(); renderPanel();
+  });
   $('panelHead').onclick = () => { if (isPhone()) $('panel').classList.toggle('collapsed'); };
   addEventListener('keydown', e => { if (e.key === 'Escape' && S.detail) exitDetail(); });
   addEventListener('resize', layout);
