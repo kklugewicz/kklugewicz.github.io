@@ -1,0 +1,705 @@
+[
+ {
+  "name": "Sargon of Akkad",
+  "wiki": "Sargon of Akkad",
+  "from": -2334,
+  "to": -2279,
+  "role": "Founder of the Akkadian Empire",
+  "why": "Built the first empire known to history, uniting the cities of Mesopotamia.",
+  "polities": [
+   "Akkad",
+   "Akkadian Empire",
+   "Sumer",
+   "Mesopotamia",
+   "Sumerian city-states",
+   "Ur"
+  ]
+ },
+ {
+  "name": "Hammurabi",
+  "wiki": "Hammurabi",
+  "from": -1792,
+  "to": -1750,
+  "role": "King of Babylon",
+  "why": "United Mesopotamia and issued one of the oldest written law codes.",
+  "polities": [
+   "Babylonia",
+   "Babylon",
+   "Amorites"
+  ]
+ },
+ {
+  "name": "Ramesses II",
+  "wiki": "Ramesses II",
+  "from": -1279,
+  "to": -1213,
+  "role": "Pharaoh of Egypt",
+  "why": "The New Kingdom's greatest builder and warrior pharaoh, who fought the Hittites at Kadesh.",
+  "polities": [
+   "Egypt",
+   "New Kingdom of Egypt"
+  ]
+ },
+ {
+  "name": "Cyrus the Great",
+  "wiki": "Cyrus the Great",
+  "from": -559,
+  "to": -530,
+  "role": "Founder of the Persian Empire",
+  "why": "Created the largest empire the world had yet seen and freed the exiled Jews of Babylon.",
+  "polities": [
+   "Achaemenid Empire",
+   "Persia",
+   "Persian Empire",
+   "Median Empire"
+  ]
+ },
+ {
+  "name": "Pericles",
+  "wiki": "Pericles",
+  "from": -461,
+  "to": -429,
+  "role": "Leader of Athens",
+  "why": "Led Athens in its golden age of democracy and built the Parthenon.",
+  "polities": [
+   "Greek city-states",
+   "Athens"
+  ]
+ },
+ {
+  "name": "Alexander the Great",
+  "wiki": "Alexander the Great",
+  "from": -336,
+  "to": -323,
+  "role": "King of Macedon",
+  "why": "Conquered the Persian Empire from Egypt to India and spread Greek culture across it.",
+  "polities": [
+   "Macedon and Hellenic League",
+   "Macedonia",
+   "Macedon",
+   "Empire of Alexander the Great",
+   "Alexander's Empire",
+   "Empire of Alexander"
+  ]
+ },
+ {
+  "name": "Ashoka",
+  "wiki": "Ashoka",
+  "from": -268,
+  "to": -232,
+  "role": "Mauryan emperor",
+  "why": "Ruled almost all of India and spread Buddhism after renouncing war.",
+  "polities": [
+   "Mauryan Empire"
+  ]
+ },
+ {
+  "name": "Qin Shi Huang",
+  "wiki": "Qin Shi Huang",
+  "from": -221,
+  "to": -210,
+  "role": "First Emperor of China",
+  "why": "Unified China, standardised its script and coins, and began the Great Wall.",
+  "polities": [
+   "Qin",
+   "Qin Empire",
+   "Han Empire"
+  ]
+ },
+ {
+  "name": "Emperor Wu of Han",
+  "wiki": "Emperor Wu of Han",
+  "from": -141,
+  "to": -87,
+  "role": "Han emperor",
+  "why": "Doubled China's size, opened the Silk Road and made Confucianism state doctrine.",
+  "polities": [
+   "Han Empire",
+   "Han"
+  ]
+ },
+ {
+  "name": "Julius Caesar",
+  "wiki": "Julius Caesar",
+  "from": -49,
+  "to": -44,
+  "role": "Dictator of Rome",
+  "why": "Conquered Gaul and ended the Roman Republic.",
+  "polities": [
+   "Roman Republic",
+   "Rome",
+   "Roman Empire"
+  ]
+ },
+ {
+  "name": "Cleopatra",
+  "wiki": "Cleopatra",
+  "from": -51,
+  "to": -30,
+  "role": "Queen of Egypt",
+  "why": "Last ruler of Ptolemaic Egypt, allied with Caesar and Mark Antony.",
+  "polities": [
+   "Ptolemaic Kingdom",
+   "Egypt"
+  ]
+ },
+ {
+  "name": "Augustus",
+  "wiki": "Augustus",
+  "from": -27,
+  "to": 14,
+  "role": "First Roman emperor",
+  "why": "Founded the Roman Empire and two centuries of Pax Romana.",
+  "polities": [
+   "Roman Empire",
+   "Roman Republic"
+  ]
+ },
+ {
+  "name": "Marcus Aurelius",
+  "wiki": "Marcus Aurelius",
+  "from": 161,
+  "to": 180,
+  "role": "Roman emperor",
+  "why": "The philosopher emperor, last of the Five Good Emperors.",
+  "polities": [
+   "Roman Empire"
+  ]
+ },
+ {
+  "name": "Constantine the Great",
+  "wiki": "Constantine the Great",
+  "from": 306,
+  "to": 337,
+  "role": "Roman emperor",
+  "why": "First Christian emperor; founded Constantinople.",
+  "polities": [
+   "Roman Empire",
+   "Eastern Roman Empire",
+   "Rome (Constantinus)"
+  ]
+ },
+ {
+  "name": "Attila",
+  "wiki": "Attila",
+  "from": 434,
+  "to": 453,
+  "role": "Ruler of the Huns",
+  "why": "Led the Hunnic Empire against both halves of the Roman world.",
+  "polities": [
+   "Hunnic Empire",
+   "Huns"
+  ]
+ },
+ {
+  "name": "Justinian I",
+  "wiki": "Justinian I",
+  "from": 527,
+  "to": 565,
+  "role": "Eastern Roman emperor",
+  "why": "Reconquered Italy and North Africa, codified Roman law and built Hagia Sophia.",
+  "polities": [
+   "Eastern Roman Empire",
+   "Byzantine Empire"
+  ]
+ },
+ {
+  "name": "Emperor Taizong of Tang",
+  "wiki": "Emperor Taizong of Tang",
+  "from": 626,
+  "to": 649,
+  "role": "Tang emperor",
+  "why": "Built Tang China into the strongest state in Asia.",
+  "polities": [
+   "Tang Empire",
+   "Sui Empire",
+   "Tang"
+  ]
+ },
+ {
+  "name": "Charlemagne",
+  "wiki": "Charlemagne",
+  "from": 768,
+  "to": 814,
+  "role": "King of the Franks, Emperor",
+  "why": "United most of western Europe and was crowned emperor in 800.",
+  "polities": [
+   "Frankish Kingdom",
+   "Franks",
+   "Carolingian Empire",
+   "Frankish Empire"
+  ]
+ },
+ {
+  "name": "William the Conqueror",
+  "wiki": "William the Conqueror",
+  "from": 1066,
+  "to": 1087,
+  "role": "King of England",
+  "why": "Conquered England in 1066 and remade its ruling class.",
+  "polities": [
+   "England",
+   "Kingdom of England"
+  ]
+ },
+ {
+  "name": "Saladin",
+  "wiki": "Saladin",
+  "from": 1174,
+  "to": 1193,
+  "role": "Sultan of Egypt and Syria",
+  "why": "United Egypt and Syria and retook Jerusalem from the crusaders in 1187.",
+  "polities": [
+   "Ayyubid Caliphate",
+   "Ayyubid Sultanate",
+   "Ayyubids",
+   "Fatimid Caliphate",
+   "Egypt"
+  ]
+ },
+ {
+  "name": "Genghis Khan",
+  "wiki": "Genghis Khan",
+  "from": 1206,
+  "to": 1227,
+  "role": "Founder of the Mongol Empire",
+  "why": "United the Mongols and began the largest land empire in history.",
+  "polities": [
+   "Mongol Empire",
+   "Mongols"
+  ]
+ },
+ {
+  "name": "Kublai Khan",
+  "wiki": "Kublai Khan",
+  "from": 1260,
+  "to": 1294,
+  "role": "Great Khan, Yuan emperor",
+  "why": "Conquered Song China and ruled the Mongol world from Beijing.",
+  "polities": [
+   "Mongol Empire",
+   "Yuan Empire",
+   "Great Khanate"
+  ]
+ },
+ {
+  "name": "Mansa Musa",
+  "wiki": "Mansa Musa",
+  "from": 1312,
+  "to": 1337,
+  "role": "Emperor of Mali",
+  "why": "Ruled the richest empire of medieval Africa; his gold-laden pilgrimage became legendary.",
+  "polities": [
+   "Mali",
+   "Mali Empire"
+  ]
+ },
+ {
+  "name": "Timur",
+  "wiki": "Timur",
+  "from": 1370,
+  "to": 1405,
+  "role": "Founder of the Timurid Empire",
+  "why": "Conquered from Anatolia to Delhi in the last great steppe conquest.",
+  "polities": [
+   "Timurid Empire",
+   "Timurid Emirates",
+   "Chagatai Khanate"
+  ]
+ },
+ {
+  "name": "Yongle Emperor",
+  "wiki": "Yongle Emperor",
+  "from": 1402,
+  "to": 1424,
+  "role": "Ming emperor",
+  "why": "Built the Forbidden City and sent Zheng He's fleets to Africa.",
+  "polities": [
+   "Ming Empire",
+   "Ming Chinese Empire"
+  ]
+ },
+ {
+  "name": "Pachacuti",
+  "wiki": "Pachacuti",
+  "from": 1438,
+  "to": 1471,
+  "role": "Sapa Inca",
+  "why": "Turned Cusco into the Inca Empire and built Machu Picchu.",
+  "polities": [
+   "Inca Empire",
+   "Quechua"
+  ]
+ },
+ {
+  "name": "Mehmed II",
+  "wiki": "Mehmed II",
+  "from": 1451,
+  "to": 1481,
+  "role": "Ottoman sultan",
+  "why": "Conquered Constantinople in 1453.",
+  "polities": [
+   "Ottoman Empire",
+   "Ottoman Sultanate"
+  ]
+ },
+ {
+  "name": "Isabella I of Castile",
+  "wiki": "Isabella I of Castile",
+  "from": 1474,
+  "to": 1504,
+  "role": "Queen of Castile",
+  "why": "With Ferdinand united Spain, took Granada and sponsored Columbus.",
+  "polities": [
+   "Castile",
+   "Castilla",
+   "Castille",
+   "Spain"
+  ]
+ },
+ {
+  "name": "Charles V",
+  "wiki": "Charles V, Holy Roman Emperor",
+  "from": 1519,
+  "to": 1556,
+  "role": "Holy Roman Emperor, King of Spain",
+  "why": "Ruled Spain, the Netherlands, Austria and the Americas at once.",
+  "polities": [
+   "Spain",
+   "Holy Roman Empire",
+   "Castille",
+   "Castile"
+  ]
+ },
+ {
+  "name": "Suleiman the Magnificent",
+  "wiki": "Suleiman the Magnificent",
+  "from": 1520,
+  "to": 1566,
+  "role": "Ottoman sultan",
+  "why": "Took the Ottoman Empire to its height, besieging Vienna in 1529.",
+  "polities": [
+   "Ottoman Empire"
+  ]
+ },
+ {
+  "name": "Akbar",
+  "wiki": "Akbar",
+  "from": 1556,
+  "to": 1605,
+  "role": "Mughal emperor",
+  "why": "Built the Mughal Empire across north India with religious tolerance.",
+  "polities": [
+   "Mughal Empire"
+  ]
+ },
+ {
+  "name": "Elizabeth I",
+  "wiki": "Elizabeth I",
+  "from": 1558,
+  "to": 1603,
+  "role": "Queen of England",
+  "why": "Defeated the Spanish Armada and presided over England's golden age.",
+  "polities": [
+   "England",
+   "England and Ireland"
+  ]
+ },
+ {
+  "name": "Tokugawa Ieyasu",
+  "wiki": "Tokugawa Ieyasu",
+  "from": 1600,
+  "to": 1616,
+  "role": "Shogun of Japan",
+  "why": "Unified Japan and founded 250 years of Tokugawa peace.",
+  "polities": [
+   "Japan",
+   "Imperial Japan",
+   "Japan (Warring States)",
+   "Shogun Japan (Tokugawa)",
+   "Tokugawa shogunate"
+  ]
+ },
+ {
+  "name": "Louis XIV",
+  "wiki": "Louis XIV",
+  "from": 1643,
+  "to": 1715,
+  "role": "King of France",
+  "why": "The Sun King made France Europe's dominant power and built Versailles.",
+  "polities": [
+   "France",
+   "Kingdom of France"
+  ]
+ },
+ {
+  "name": "Kangxi Emperor",
+  "wiki": "Kangxi Emperor",
+  "from": 1661,
+  "to": 1722,
+  "role": "Qing emperor",
+  "why": "China's longest reigning emperor, who secured Qing rule over a vast empire.",
+  "polities": [
+   "Manchu Empire",
+   "Qing Empire"
+  ]
+ },
+ {
+  "name": "Peter the Great",
+  "wiki": "Peter the Great",
+  "from": 1682,
+  "to": 1725,
+  "role": "Tsar of Russia",
+  "why": "Westernised Russia, built St Petersburg and made it a European great power.",
+  "polities": [
+   "Russian Empire",
+   "Tsardom of Muscovy",
+   "Russia"
+  ]
+ },
+ {
+  "name": "Frederick the Great",
+  "wiki": "Frederick the Great",
+  "from": 1740,
+  "to": 1786,
+  "role": "King of Prussia",
+  "why": "Made Prussia a great power in the Seven Years' War.",
+  "polities": [
+   "Prussia",
+   "Brandenburg-Prussia"
+  ]
+ },
+ {
+  "name": "Catherine the Great",
+  "wiki": "Catherine the Great",
+  "from": 1762,
+  "to": 1796,
+  "role": "Empress of Russia",
+  "why": "Expanded Russia to the Black Sea and into Poland.",
+  "polities": [
+   "Russian Empire",
+   "Russia"
+  ]
+ },
+ {
+  "name": "George Washington",
+  "wiki": "George Washington",
+  "from": 1775,
+  "to": 1797,
+  "role": "First US President",
+  "why": "Led the American Revolution and became the first president.",
+  "polities": [
+   "United States",
+   "United States of America"
+  ]
+ },
+ {
+  "name": "Napoleon",
+  "wiki": "Napoleon",
+  "from": 1799,
+  "to": 1815,
+  "role": "Emperor of the French",
+  "why": "Conquered most of Europe and spread the Napoleonic Code.",
+  "polities": [
+   "France",
+   "French Empire",
+   "First French Empire"
+  ]
+ },
+ {
+  "name": "Simon Bolivar",
+  "wiki": "Simón Bolívar",
+  "from": 1813,
+  "to": 1830,
+  "role": "Liberator of South America",
+  "why": "Freed Venezuela, Colombia, Ecuador, Peru and Bolivia from Spain.",
+  "polities": [
+   "Gran Colombia",
+   "Colombia",
+   "Venezuela",
+   "Viceroyalty of New Granada"
+  ]
+ },
+ {
+  "name": "Queen Victoria",
+  "wiki": "Queen Victoria",
+  "from": 1837,
+  "to": 1901,
+  "role": "Queen of the United Kingdom",
+  "why": "Reigned over the British Empire at its height.",
+  "polities": [
+   "United Kingdom",
+   "United Kingdom of Great Britain and Ireland"
+  ]
+ },
+ {
+  "name": "Abraham Lincoln",
+  "wiki": "Abraham Lincoln",
+  "from": 1861,
+  "to": 1865,
+  "role": "US President",
+  "why": "Led the Union through the Civil War and ended slavery.",
+  "polities": [
+   "United States",
+   "United States of America"
+  ]
+ },
+ {
+  "name": "Otto von Bismarck",
+  "wiki": "Otto von Bismarck",
+  "from": 1862,
+  "to": 1890,
+  "role": "Chancellor of Prussia and Germany",
+  "why": "Unified Germany through three wars and dominated European diplomacy.",
+  "polities": [
+   "Prussia",
+   "German Empire",
+   "Germany"
+  ]
+ },
+ {
+  "name": "Emperor Meiji",
+  "wiki": "Emperor Meiji",
+  "from": 1867,
+  "to": 1912,
+  "role": "Emperor of Japan",
+  "why": "Japan's Meiji Restoration turned it into a modern industrial power.",
+  "polities": [
+   "Japan",
+   "Empire of Japan",
+   "Imperial Japan"
+  ]
+ },
+ {
+  "name": "Vladimir Lenin",
+  "wiki": "Vladimir Lenin",
+  "from": 1917,
+  "to": 1924,
+  "role": "Founder of the Soviet Union",
+  "why": "Led the Bolshevik Revolution and founded the first communist state.",
+  "polities": [
+   "USSR",
+   "Russia",
+   "Russian Empire",
+   "Soviet Russia"
+  ]
+ },
+ {
+  "name": "Mustafa Kemal Ataturk",
+  "wiki": "Mustafa Kemal Atatürk",
+  "from": 1923,
+  "to": 1938,
+  "role": "Founder of modern Turkey",
+  "why": "Built a secular Turkish republic from the Ottoman ruins.",
+  "polities": [
+   "Turkey",
+   "Republic of Turkey",
+   "Ottoman Sultanate"
+  ]
+ },
+ {
+  "name": "Joseph Stalin",
+  "wiki": "Joseph Stalin",
+  "from": 1924,
+  "to": 1953,
+  "role": "Soviet leader",
+  "why": "Industrialised the USSR by terror and led it to victory over Nazi Germany.",
+  "polities": [
+   "USSR"
+  ]
+ },
+ {
+  "name": "Adolf Hitler",
+  "wiki": "Adolf Hitler",
+  "from": 1933,
+  "to": 1945,
+  "role": "Nazi dictator of Germany",
+  "why": "Started the Second World War in Europe and perpetrated the Holocaust.",
+  "polities": [
+   "Germany",
+   "German Reich",
+   "Greater German Reich"
+  ]
+ },
+ {
+  "name": "Franklin D. Roosevelt",
+  "wiki": "Franklin D. Roosevelt",
+  "from": 1933,
+  "to": 1945,
+  "role": "US President",
+  "why": "Led America through the Depression and the Second World War.",
+  "polities": [
+   "United States",
+   "United States of America"
+  ]
+ },
+ {
+  "name": "Winston Churchill",
+  "wiki": "Winston Churchill",
+  "from": 1940,
+  "to": 1945,
+  "role": "British Prime Minister",
+  "why": "Led Britain's resistance to Nazi Germany.",
+  "polities": [
+   "United Kingdom",
+   "United Kingdom of Great Britain and Ireland"
+  ]
+ },
+ {
+  "name": "Mahatma Gandhi",
+  "wiki": "Mahatma Gandhi",
+  "from": 1920,
+  "to": 1947,
+  "role": "Leader of Indian independence",
+  "why": "Led India's non-violent struggle for independence.",
+  "polities": [
+   "British Raj",
+   "India"
+  ]
+ },
+ {
+  "name": "Mao Zedong",
+  "wiki": "Mao Zedong",
+  "from": 1949,
+  "to": 1976,
+  "role": "Founder of the People's Republic of China",
+  "why": "Won the Chinese Civil War and ruled communist China.",
+  "polities": [
+   "China",
+   "People's Republic of China"
+  ]
+ },
+ {
+  "name": "Deng Xiaoping",
+  "wiki": "Deng Xiaoping",
+  "from": 1978,
+  "to": 1989,
+  "role": "Leader of China",
+  "why": "Opened China's economy and began its rise to superpower.",
+  "polities": [
+   "China"
+  ]
+ },
+ {
+  "name": "Mikhail Gorbachev",
+  "wiki": "Mikhail Gorbachev",
+  "from": 1985,
+  "to": 1991,
+  "role": "Last Soviet leader",
+  "why": "His reforms ended the Cold War and led to the Soviet Union's breakup.",
+  "polities": [
+   "USSR"
+  ]
+ },
+ {
+  "name": "Nelson Mandela",
+  "wiki": "Nelson Mandela",
+  "from": 1994,
+  "to": 1999,
+  "role": "President of South Africa",
+  "why": "Ended apartheid peacefully and became South Africa's first Black president.",
+  "polities": [
+   "South Africa"
+  ]
+ }
+]
