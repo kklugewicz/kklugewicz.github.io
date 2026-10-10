@@ -431,6 +431,9 @@ details[open] summary { margin-bottom: 6px; }
     }
     labels = [...byName.values()];
   }
+  // on-screen size of a label: grows with how big its state looks, from 10px to 15px
+  const lblPx = (l, k) => Math.min(15, 12 * Math.max(.85, Math.sqrt(l.a * k * k) / 140));
+  let shownLabels = new Map();
   function drawLabels() {
     const k = S.k, fs = 12 / k;
     const side = sideMap();
@@ -439,8 +442,9 @@ details[open] summary { margin-bottom: 6px; }
     const vis = S.detail && !side ? [] : labels.filter(l => (!side || side.has(l.name)) && l.a * k * k > minA && l.w * k > l.name.length * perCh);
     lblG.selectAll('text').data(vis, d => d.name).join('text')
       .attr('class', 'lbl').attr('x', d => d.x).attr('y', d => d.y)
-      .attr('font-size', d => Math.min(fs * 1.25, fs * Math.max(.85, Math.sqrt(d.a * k * k) / 140)))
+      .attr('font-size', d => lblPx(d, k) / k)
       .attr('stroke-width', 3 / k).text(d => d.name);
+    shownLabels = new Map(vis.map(l => [l.name, l]));
     drawLeaders();
   }
 
@@ -477,14 +481,18 @@ details[open] summary { margin-bottom: 6px; }
   }
   const leaderOf = f => leadersNow().find(x => x.f === f);
   function drawLeaders() {
-    const list = leadersNow(), k = S.k;
+    // a portrait only appears once you've zoomed in past the whole-world view, and only beside a name
+    // that is showing; it shrinks as the state gets smaller on screen
+    const k = S.k, list = k < 2 ? [] : leadersNow().filter(x => {
+      const l = shownLabels.get(simple() ? x.f.group : x.f.properties.name);
+      if (!l) return false;
+      // how wide the state looks on screen, in px; small-looking states get no portrait
+      const big = Math.sqrt(l.a * k * k);
+      if (big < 90) return false;
+      x.xy = [l.x, l.y]; x.s = Math.min(1.15, .55 + (big - 90) / 250); x.w = l.name.length * lblPx(l, k) * .29;
+      return true;
+    });
     fetchPortraits(list);
-    for (const x of list) if (x.xy === undefined) {
-      const l = labels.find(l => l.name === (simple() ? x.f.group : x.f.properties.name));
-      let big = null, ba = -1;
-      for (const poly of x.f.geometry.coordinates) { const g = { type: 'Polygon', coordinates: poly }; const a = path.area(g); if (a > ba) { ba = a; big = g; } }
-      x.xy = l ? [l.x, l.y] : path.centroid(big); x.w = l ? l.name.length * 3.4 : 0;
-    }
     leadG.selectAll('g.leader').data(list, d => d.r.name).join(enter => {
       const g = enter.append('g').attr('class', 'leader')
         .on('click', (e, d) => { e.stopPropagation(); onPolity(d.f); })
@@ -493,7 +501,7 @@ details[open] summary { margin-bottom: 6px; }
       g.append('text').attr('class', 'ini').text(d => d.r.name.split(/\s+/).filter(w => /^[A-Z]/.test(w)).slice(0, 2).map(w => w[0]).join(''));
       g.append('image').attr('x', -14).attr('y', -14).attr('width', 28).attr('height', 28).attr('clip-path', 'url(#portraitClip)').attr('preserveAspectRatio', 'xMidYMin slice');
       return g;
-    }).attr('transform', d => `translate(${d.xy[0] - (d.w + 20) / k},${d.xy[1]}) scale(${1 / k})`)
+    }).attr('transform', d => `translate(${d.xy[0] - (d.w + 18 * d.s + 4) / k},${d.xy[1]}) scale(${d.s / k})`)
       .each(function (d) { const src = portraits[d.r.wiki]; d3.select(this).select('image').attr('href', src || null).style('display', src ? null : 'none'); });
   }
   defs.append('clipPath').attr('id', 'portraitClip').append('circle').attr('r', 14);
@@ -747,7 +755,7 @@ details[open] summary { margin-bottom: 6px; }
       if (f) {
         const p = f.properties, fa = faithAt(f, S.idx);
         const sw = S.mode === 'religions' && fa ? fa.color : polFill(p.name);
-        const ld = leaderOf(f);
+        const ld = leaderOf(f); if (ld) fetchPortraits([ld]);
         if (ld) html += `<div class="ruler"><div class="ph">${portraits[ld.r.wiki] ? `<img src="${esc(portraits[ld.r.wiki])}" alt="">` : esc(ld.r.name[0])}</div><div><b>${esc(ld.r.name)}</b><span class="s">${esc(ld.r.role)}, ${fmtYear(ld.r.from)} to ${fmtYear(ld.r.to)}</span><p class="syn" style="font-size:14.5px;margin-top:4px">${esc(ld.r.why)}</p></div></div>`;
         html += `<div class="focus"><h2><span class="swatch" style="background:${sw}"></span>${esc(p.name)}</h2>` +
           (p.sub ? `<div class="sub">Part of ${esc(p.sub)}</div>` : '') + (fa ? `<div class="sub">Main faith: ${esc(fa.name)}</div>` : '') + '</div>';
