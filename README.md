@@ -8,7 +8,7 @@ index.html              Home: hero, about, project + experience synopsis, contac
 projects/<slug>.html    One page per project
 experience/<slug>.html  One page per role
 style.css               All styling
-site.js                 Nav + dropdowns, footer, prev/next links, hero animation, lightbox
+site.js                 Nav + dropdowns, footer, prev/next links, EEG intro, live neuron network, lightbox
 assets/img/             Photos and figures (web-optimized)
 assets/favicon.svg
 .nojekyll               Serve files as-is (no Jekyll processing)
