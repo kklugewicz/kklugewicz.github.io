@@ -184,7 +184,7 @@ function recordingIntro(onDone) {
   addEventListener("resize", resize);
 
   const lines = [
-    [0, "$ kk-eeg --subject kyle --montage double-banana"],
+    [0, "$ kk-eeg --subject kyle --loading education, work experience, projects...  "],
     [32, "› waking up the analog front end ...... <span class=ok>ok</span>"],
     [70, "› checking electrode contact .......... <span class=ok>ok</span>"],
     [108, "› streaming 8 channels"],
