@@ -158,7 +158,7 @@ function recordingIntro(onDone) {
   box.className = "rec-intro";
   box.innerHTML = `
     <canvas></canvas>
-    <div class="rec-head"><span><span class="rec-dot"></span>REC · session 001 · subject: kyle</span><span>8 ch · double-banana montage</span></div>
+    <div class="rec-head"><span><span class="rec-dot"></span>REC · session 001 · subject: kyle</span><span>8 ch</span></div>
     <div class="rec-log" aria-live="polite"></div>
     <button class="skip" type="button">skip intro ⏭</button>`;
   document.body.appendChild(box);
