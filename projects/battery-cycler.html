@@ -21,7 +21,7 @@
       <p class="eyebrow">Power Electronics · Senior Capstone</p>
       <h1>Lithium Battery Cycler</h1>
       <p class="subtitle">A 120 V AC bench instrument that charges and discharges lithium cells under user-defined profiles while tracking capacity and cell health.</p>
-      <ul class="facts"><li><strong>Role</strong>Central PCB & Integration</li><li><strong>When</strong>2026</li><li><strong>Team</strong>5 engineers</li><li><strong>Budget</strong>$878.44 total</li></ul>
+      <ul class="facts"><li><strong>Role</strong>Team Lead · Discharging Circuit · Firmware</li><li><strong>When</strong>2026</li><li><strong>Team</strong>5 engineers</li><li><strong>Budget</strong>$878.44 total</li></ul>
     </div>
   </header>
 
@@ -44,11 +44,18 @@ efficiency. We met every target specification.</p>
 <p>The system is split across three boards: a charging PCB, a discharging PCB, and a central control PCB that ties them
 together. Each board was built and tested on its own before everything went into one vented acrylic enclosure.</p>
 
-<h2>Central PCB (my ownership)</h2>
+<h2>My role</h2>
 <ul>
-  <li>Selected and justified the core parts: an ESP32-DEVKITC-32UE, MPM3610 buck converters (21 V → 3.3 V / 5 V), and 16 A-rated relays.</li>
-  <li>Built the full GPIO map, integrated every subsystem into one schematic, and laid out a four-layer board in EasyEDA with a dedicated ground plane and mounting holes.</li>
-  <li>Brought the board up on the bench and integrated it with the charging and discharging boards, so the relays, sensors, LCD, and power rails all worked together in the final system.</li>
+  <li><strong>Discharging circuit.</strong> I owned the discharging board, the MOSFET active load described below.</li>
+  <li><strong>System firmware.</strong> I owned the ESP32 firmware that runs the whole cycler.</li>
+  <li><strong>Team lead.</strong> I led the team and helped with part selection on the central PCB.</li>
+</ul>
+
+<h2>Central PCB</h2>
+<ul>
+  <li>The core parts are an ESP32-DEVKITC-32UE, MPM3610 buck converters (21 V → 3.3 V / 5 V), and 16 A-rated relays. I helped choose them as team lead.</li>
+  <li>The board carries the full GPIO map and ties every subsystem into one schematic, on a four-layer EasyEDA layout with a dedicated ground plane and mounting holes.</li>
+  <li>It connects the charging and discharging boards, so the relays, sensors, LCD, and power rails all work together in the final system.</li>
 </ul>
 <div class="fig-row" style="--ratio:4/3">
   <figure class="fig"><a href="../assets/img/cycler-central-3d.jpg"><img src="../assets/img/cycler-central-3d.jpg" alt="3D render of the central PCB in EasyEDA" loading="lazy"></a><figcaption>Central PCB, 3D render in EasyEDA</figcaption></figure>
@@ -67,7 +74,7 @@ together. Each board was built and tested on its own before everything went into
   <figure class="fig"><a href="../assets/img/cycler-charge-pcb.jpg"><img src="../assets/img/cycler-charge-pcb.jpg" alt="Completed charging PCB" loading="lazy"></a><figcaption>Charging PCB after reflow soldering</figcaption></figure>
 </div>
 
-<h2>Discharging</h2>
+<h2>Discharging (my ownership)</h2>
 <ul>
   <li>The discharger is a MOSFET active load: an LT1006 op-amp with an integrator drives the gates of five parallel IRF540N MOSFETs to sink a set current.</li>
   <li>A FLIR thermal study set a 4 A safe ceiling per MOSFET, and we derated the design to 3 A. That drove the final two-layer, five-MOSFET board with a heatsink and fan.</li>
@@ -103,7 +110,7 @@ together. Each board was built and tested on its own before everything went into
   <li>Built a noise-rejection chain: a relay-open baseline, a trimmed mean of 100 samples, and an exponential moving average.</li>
 </ul>
 
-<h2>Firmware &amp; interface</h2>
+<h2>Firmware &amp; interface (my ownership)</h2>
 <ul>
   <li>The ESP32 firmware runs a state machine that handles safety checks, the control loops, and the end-of-charge and end-of-discharge conditions every pass through the main loop.</li>
   <li>The menu on the 20×4 LCD sets charging, discharging, or full cycles, the number of cycles, cutoff voltage, current, and discharge mode. A dedicated button stops everything immediately.</li>
