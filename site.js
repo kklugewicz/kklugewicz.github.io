@@ -76,6 +76,7 @@ function renderNav() {
         <li><a href="${home}#about">about</a></li>
         ${menu("projects", "projects", SITE.projects)}
         ${menu("experience", "experience", SITE.experience)}
+        <li${page === "coursework" ? ' class="current"' : ""}><a href="${root}coursework.html">coursework</a></li>
         <li><a href="${home}#contact">contact</a></li>
       </ul>
     </div>
